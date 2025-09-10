@@ -13,28 +13,143 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum EventCategory {
+  CONFERENCE
+  WORKSHOP
+  NETWORKING
+  SOCIAL
+  BUSINESS
+  ENTERTAINMENT
+  SPORTS
+  EDUCATION
+  CULTURAL
+  OTHER
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  PENDING
+}
+
 model User {
   id        String    @id @default(cuid())
   email     String    @unique
   name      String?
+  password  String
+  role      UserRole  @default(USER)
   bookings  Booking[]
+  payments  Payment[]
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
 }
 
 model Event {
-  id       String    @id @default(cuid())
-  name     String
-  venue    String
-  time     DateTime
-  capacity Int
-  bookings Booking[]
+  id                String        @id @default(cuid())
+  name              String
+  description       String?
+  venue             String
+  startTime         DateTime
+  endTime           DateTime?
+  capacity          Int
+  availableCapacity Int
+  price             Decimal       @default(0) @db.Decimal(10, 2)
+  category          EventCategory @default(OTHER)
+  tags              String[] // Array of tags for better filtering
+  imageUrl          String? // Event image
+  version           Int           @default(0) // For optimistic locking
+  bookings          Booking[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([startTime])
+  @@index([category])
+  @@index([price])
+  @@map("events")
 }
 
 model Booking {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  createdAt DateTime @default(now())
+  id             String        @id @default(cuid())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  event          Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId        String
+  quantity       Int           @default(1)
+  totalPrice     Decimal       @default(0) @db.Decimal(10, 2)
+  status         BookingStatus @default(CONFIRMED)
+  idempotencyKey String? // For preventing duplicate bookings
+  payments       Payment[] // One booking can have multiple payment attempts
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([idempotencyKey, userId]) // Prevent duplicate bookings
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@map("bookings")
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  booking        Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId      String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  amount         Decimal       @db.Decimal(10, 2)
+  currency       String        @default("USD")
+  paymentMethod  String // "card", "paypal", "stripe", etc.
+  transactionId  String? // External payment processor transaction ID
+  status         PaymentStatus @default(PENDING)
+  paymentDetails Json? // Store card details, etc. (encrypted in real app)
+  failureReason  String? // Reason for payment failure
+  processedAt    DateTime? // When payment was processed
+  refunds        Refund[] // One payment can have multiple refunds
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([transactionId])
+  @@map("payments")
+}
+
+model Refund {
+  id                  String       @id @default(cuid())
+  payment             Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId           String
+  amount              Decimal      @db.Decimal(10, 2)
+  reason              String
+  status              RefundStatus @default(PENDING)
+  refundTransactionId String? // External processor refund transaction ID
+  processedAt         DateTime? // When refund was processed
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([paymentId])
+  @@index([status])
+  @@map("refunds")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
