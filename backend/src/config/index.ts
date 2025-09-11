@@ -3,13 +3,13 @@ import { z } from 'zod';
 // Environment variables validation
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().default('3001'),
+  PORT: z.string().default('4000'),  // Backend port should be 4000
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
   JWT_SECRET: z.string().min(16),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  API_URL: z.string().url().optional(),
-  FRONTEND_URL: z.string().url().optional(),
+  API_URL: z.string().url().optional(),  // Backend's own URL
+  FRONTEND_URL: z.string().url().optional(),  // Frontend URL for CORS
 });
 
 // Validate environment variables
