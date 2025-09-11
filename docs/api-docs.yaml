@@ -1,0 +1,1416 @@
+openapi: 3.0.3
+info:
+  title: Evently API
+  description: |
+    # 🎫 Evently - Event Booking Platform API
+    
+    A comprehensive REST API for managing events, bookings, waitlists, and notifications in a scalable event booking platform.
+    
+    ## 🌟 Key Features
+    - **Event Management**: Create and manage events with capacity controls
+    - **Secure Bookings**: Concurrency-safe ticket booking system
+    - **Waitlist System**: Automatic queue management with notifications
+    - **PDF Tickets**: Generate downloadable tickets with QR codes
+    - **Real-time Notifications**: Push and email notifications
+    - **Admin Analytics**: Comprehensive booking and user analytics
+    - **Search & Discovery**: Advanced event filtering and search
+    
+    ## 🔐 Authentication
+    Most endpoints require JWT authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## 📱 Response Format
+    All responses follow a consistent format:
+    ```json
+    {
+      "status": "success|error",
+      "message": "Human-readable message",
+      "data": { ... },
+      "toast": {
+        "title": "UI Toast Title",
+        "message": "Toast message for frontend",
+        "type": "success|error|warning|info",
+        "duration": 5000
+      }
+    }
+    ```
+    
+    ## 🚀 Getting Started
+    1. Register a new account: `POST /api/auth/register`
+    2. Login to get JWT token: `POST /api/auth/login` 
+    3. Browse events: `GET /api/events`
+    4. Book tickets: `POST /api/bookings`
+    5. Download tickets: `GET /api/tickets/{bookingId}/download`
+    
+  version: 1.0.0
+  contact:
+    name: Evently API Support
+    email: support@evently.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:4000/api
+    description: Development server
+  - url: https://evently-api.example.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and account management
+  - name: Events
+    description: Event creation, management, and discovery
+  - name: Bookings
+    description: Ticket booking and cancellation operations
+  - name: Waitlist
+    description: Waitlist management and position tracking
+  - name: Tickets
+    description: Ticket generation, download, and QR codes
+  - name: Notifications
+    description: Push notifications and notification history
+  - name: Admin
+    description: Administrative operations and analytics
+  - name: Search
+    description: Event search and filtering capabilities
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+  schemas:
+    # Common Schemas
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        message:
+          type: string
+        data:
+          type: object
+        toast:
+          $ref: '#/components/schemas/ToastNotification'
+          
+    ToastNotification:
+      type: object
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+          enum: [success, error, warning, info]
+        duration:
+          type: integer
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToastAction'
+            
+    ToastAction:
+      type: object
+      properties:
+        label:
+          type: string
+        action:
+          type: string
+        url:
+          type: string
+        bookingId:
+          type: string
+    
+    # User Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+          
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+        
+    # Event Schemas
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        venue:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        availableCapacity:
+          type: integer
+        price:
+          type: number
+          format: decimal
+        category:
+          type: string
+          enum: [CONFERENCE, WORKSHOP, NETWORKING, SOCIAL, BUSINESS, ENTERTAINMENT, SPORTS, EDUCATION, CULTURAL, OTHER]
+        imageUrl:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          
+    CreateEventRequest:
+      type: object
+      required:
+        - name
+        - venue
+        - startTime
+        - capacity
+        - price
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        venue:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+        category:
+          type: string
+          enum: [CONFERENCE, WORKSHOP, NETWORKING, SOCIAL, BUSINESS, ENTERTAINMENT, SPORTS, EDUCATION, CULTURAL, OTHER]
+        imageUrl:
+          type: string
+          
+    EventWithStatus:
+      allOf:
+        - $ref: '#/components/schemas/Event'
+        - type: object
+          properties:
+            userStatus:
+              type: object
+              properties:
+                hasBooking:
+                  type: boolean
+                bookingId:
+                  type: string
+                waitlistPosition:
+                  type: integer
+                canJoinWaitlist:
+                  type: boolean
+                canBook:
+                  type: boolean
+            availability:
+              type: object
+              properties:
+                isFull:
+                  type: boolean
+                available:
+                  type: integer
+                total:
+                  type: integer
+                waitlistCount:
+                  type: integer
+                bookingsCount:
+                  type: integer
+                  
+    # Booking Schemas
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        eventId:
+          type: string
+        quantity:
+          type: integer
+        totalPrice:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [CONFIRMED, CANCELLED, PENDING]
+        displayStatus:
+          type: string
+        bookedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        event:
+          $ref: '#/components/schemas/Event'
+        ticket:
+          $ref: '#/components/schemas/Ticket'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingAction'
+            
+    BookingAction:
+      type: object
+      properties:
+        label:
+          type: string
+        action:
+          type: string
+        url:
+          type: string
+        icon:
+          type: string
+        method:
+          type: string
+          
+    CreateBookingRequest:
+      type: object
+      required:
+        - eventId
+        - quantity
+      properties:
+        eventId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+          
+    # Ticket Schemas
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+        bookingId:
+          type: string
+        ticketNumber:
+          type: string
+        qrCode:
+          type: string
+        downloadUrl:
+          type: string
+        qrCodeUrl:
+          type: string
+        detailsUrl:
+          type: string
+        canDownload:
+          type: boolean
+        canView:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          
+    # Waitlist Schemas
+    WaitlistEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        eventId:
+          type: string
+        position:
+          type: integer
+        status:
+          type: string
+          enum: [ACTIVE, NOTIFIED, EXPIRED]
+        joinedAt:
+          type: string
+          format: date-time
+        notifiedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        event:
+          $ref: '#/components/schemas/Event'
+          
+    # Notification Schemas
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        data:
+          type: object
+          
+    PushSubscriptionRequest:
+      type: object
+      required:
+        - endpoint
+        - keys
+      properties:
+        endpoint:
+          type: string
+        keys:
+          type: object
+          properties:
+            p256dh:
+              type: string
+            auth:
+              type: string
+              
+    # Admin Schemas
+    AdminOverview:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalEvents:
+          type: integer
+        totalBookings:
+          type: integer
+        recentBookings:
+          type: integer
+        totalWaitlists:
+          type: integer
+        revenueToday:
+          type: number
+          format: decimal
+          
+    UserDetails:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            stats:
+              type: object
+              properties:
+                totalBookings:
+                  type: integer
+                totalWaitlists:
+                  type: integer
+                  
+    # Error Schemas
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user account
+      description: Create a new user account with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              email: "user@example.com"
+              password: "securepassword123"
+              name: "John Doe"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login with email and password
+      description: Authenticate user and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "user@example.com"
+              password: "securepassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Retrieve the authenticated user's profile information
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Event Endpoints
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Get all events
+      description: Retrieve a paginated list of all events with filtering options
+      parameters:
+        - name: page
+          in: query
+          description: Page number (default: 1)
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of events per page (default: 10)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: category
+          in: query
+          description: Filter by event category
+          schema:
+            type: string
+            enum: [CONFERENCE, WORKSHOP, NETWORKING, SOCIAL, BUSINESS, ENTERTAINMENT, SPORTS, EDUCATION, CULTURAL, OTHER]
+        - name: search
+          in: query
+          description: Search in event name and description
+          schema:
+            type: string
+        - name: upcoming
+          in: query
+          description: Filter upcoming events only
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Events retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          events:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Event'
+                          pagination:
+                            type: object
+                            properties:
+                              currentPage:
+                                type: integer
+                              totalPages:
+                                type: integer
+                              totalCount:
+                                type: integer
+                              limit:
+                                type: integer
+                              hasNextPage:
+                                type: boolean
+                              hasPrevPage:
+                                type: boolean
+    post:
+      tags:
+        - Events
+      summary: Create a new event (Admin only)
+      description: Create a new event with specified details
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+            example:
+              name: "Tech Conference 2024"
+              description: "Annual technology conference featuring latest trends"
+              venue: "Convention Center"
+              startTime: "2024-12-01T09:00:00Z"
+              endTime: "2024-12-01T17:00:00Z"
+              capacity: 500
+              price: 99.99
+              category: "CONFERENCE"
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          event:
+                            $ref: '#/components/schemas/Event'
+        '403':
+          description: Access denied - Admin privileges required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /events/{id}:
+    get:
+      tags:
+        - Events
+      summary: Get event details
+      description: Retrieve detailed information about a specific event including user status and availability
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event ID
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Event details retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EventWithStatus'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+    put:
+      tags:
+        - Events
+      summary: Update event (Admin only)
+      description: Update an existing event's details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          event:
+                            $ref: '#/components/schemas/Event'
+        '403':
+          description: Access denied - Admin privileges required
+        '404':
+          description: Event not found
+          
+    delete:
+      tags:
+        - Events
+      summary: Delete event (Admin only)
+      description: Delete an event and all associated bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Access denied - Admin privileges required
+        '404':
+          description: Event not found
+
+  # Booking Endpoints
+  /bookings:
+    post:
+      tags:
+        - Bookings
+      summary: Create a new booking
+      description: Book tickets for an event with concurrency protection
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+            example:
+              eventId: "event-id-123"
+              quantity: 2
+      responses:
+        '201':
+          description: Booking created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          booking:
+                            $ref: '#/components/schemas/Booking'
+                          ticketLinks:
+                            type: object
+                            properties:
+                              download:
+                                type: string
+                              qrCode:
+                                type: string
+                              details:
+                                type: string
+        '400':
+          description: Invalid booking request or event full
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Booking conflict - event may be full
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+    get:
+      tags:
+        - Bookings
+      summary: Get all bookings (Admin only)
+      description: Retrieve all bookings with filtering and pagination
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [CONFIRMED, CANCELLED, PENDING]
+        - name: eventId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bookings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          bookings:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Booking'
+                          pagination:
+                            type: object
+                          summary:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              confirmed:
+                                type: integer
+                              cancelled:
+                                type: integer
+                              pending:
+                                type: integer
+        '403':
+          description: Access denied - Admin privileges required
+          
+  /bookings/my:
+    get:
+      tags:
+        - Bookings
+      summary: Get current user's bookings
+      description: Retrieve all bookings for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User bookings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          bookings:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Booking'
+                          summary:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              confirmed:
+                                type: integer
+                              cancelled:
+                                type: integer
+                              pending:
+                                type: integer
+                                
+  /bookings/{id}:
+    delete:
+      tags:
+        - Bookings
+      summary: Cancel a booking
+      description: Cancel a booking and release tickets back to available pool
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Booking ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Booking cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Booking not found
+        '403':
+          description: Access denied - Can only cancel own bookings
+
+  # Waitlist Endpoints
+  /waitlist/join/{eventId}:
+    post:
+      tags:
+        - Waitlist
+      summary: Join event waitlist
+      description: Join the waitlist for a full event
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: Event ID to join waitlist for
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Successfully joined waitlist
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          waitlistEntry:
+                            $ref: '#/components/schemas/WaitlistEntry'
+        '400':
+          description: Cannot join waitlist (event not full, already in waitlist, etc.)
+        '404':
+          description: Event not found
+          
+  /waitlist/user/{userId}:
+    get:
+      tags:
+        - Waitlist
+      summary: Get user's waitlist entries
+      description: Retrieve all waitlist entries for a specific user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User waitlist entries retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          waitlistEntries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/WaitlistEntry'
+
+  # Ticket Endpoints
+  /tickets/{bookingId}/download:
+    get:
+      tags:
+        - Tickets
+      summary: Download PDF ticket
+      description: Download a PDF ticket with QR code for event entry
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: Booking ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: PDF ticket generated successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Booking not found
+        '403':
+          description: Access denied - Can only download own tickets
+          
+  /tickets/{bookingId}/qr:
+    get:
+      tags:
+        - Tickets
+      summary: Get QR code image
+      description: Get the QR code image for ticket verification
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: Booking ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: QR code image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Booking not found
+        '403':
+          description: Access denied
+          
+  /tickets/{bookingId}/details:
+    get:
+      tags:
+        - Tickets
+      summary: Get ticket details
+      description: Get detailed ticket information for preview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: Booking ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket details retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          ticket:
+                            $ref: '#/components/schemas/Ticket'
+                          booking:
+                            $ref: '#/components/schemas/Booking'
+
+  # Notification Endpoints
+  /notifications/vapid-key:
+    get:
+      tags:
+        - Notifications
+      summary: Get VAPID public key
+      description: Get the VAPID public key for push notification subscription
+      responses:
+        '200':
+          description: VAPID key retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          vapidKey:
+                            type: string
+                            
+  /notifications/subscribe:
+    post:
+      tags:
+        - Notifications
+      summary: Subscribe to push notifications
+      description: Subscribe the user to push notifications
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushSubscriptionRequest'
+      responses:
+        '201':
+          description: Successfully subscribed to push notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+                
+  /notifications/user/{userId}:
+    get:
+      tags:
+        - Notifications
+      summary: Get user notifications
+      description: Retrieve notification history for a user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          notifications:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Notification'
+                          pushNotificationsEnabled:
+                            type: boolean
+                          totalNotifications:
+                            type: integer
+
+  # Admin Endpoints
+  /admin/dashboard/overview:
+    get:
+      tags:
+        - Admin
+      summary: Get admin dashboard overview
+      description: Get high-level statistics for admin dashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Admin overview retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          overview:
+                            $ref: '#/components/schemas/AdminOverview'
+        '403':
+          description: Access denied - Admin privileges required
+          
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get all users (Admin only)
+      description: Retrieve paginated list of all registered users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          description: Search by name or email
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          users:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+                          pagination:
+                            type: object
+        '403':
+          description: Access denied - Admin privileges required
+          
+  /admin/users/{userId}/details:
+    get:
+      tags:
+        - Admin
+      summary: Get detailed user information
+      description: Get comprehensive user details including booking history
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserDetails'
+        '403':
+          description: Access denied - Admin privileges required
+        '404':
+          description: User not found
+
+  # Search Endpoints  
+  /search/events:
+    get:
+      tags:
+        - Search
+      summary: Search events
+      description: Advanced search and filtering for events
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: location
+          in: query
+          description: Filter by venue/location
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          description: Filter by start date (ISO format)
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: Filter by end date (ISO format)
+          schema:
+            type: string
+            format: date
+        - name: price_min
+          in: query
+          description: Minimum price filter
+          schema:
+            type: number
+        - name: price_max
+          in: query
+          description: Maximum price filter
+          schema:
+            type: number
+        - name: available_only
+          in: query
+          description: Show only events with available tickets
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          events:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Event'
+                          totalResults:
+                            type: integer
+                          searchQuery:
+                            type: string
+                          filters:
+                            type: object
+
+security:
+  - BearerAuth: []
+
+externalDocs:
+  description: Find out more about Evently
+  url: https://github.com/SahilSoni27/evently

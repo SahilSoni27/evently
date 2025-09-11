@@ -7,6 +7,11 @@ import {
   sendTestNotification,
   sendEventReminder
 } from '../controllers/notificationController';
+import {
+  getUserNotifications,
+  markNotificationAsRead,
+  getNotificationStatus
+} from '../controllers/notificationHistoryController';
 
 const router = Router();
 
@@ -16,6 +21,11 @@ router.get('/vapid-key', getVapidKey);
 // Authenticated routes
 router.post('/subscribe', requireAuth, subscribe);
 router.post('/unsubscribe', requireAuth, unsubscribe);
+router.get('/status', requireAuth, getNotificationStatus);
+
+// Notification history routes
+router.get('/user/:userId', requireAuth, getUserNotifications);
+router.post('/mark-read/:notificationId', requireAuth, markNotificationAsRead);
 
 // Admin routes
 router.post('/test', requireAuth, sendTestNotification);

@@ -59,6 +59,39 @@ export interface Event {
   };
 }
 
+export interface CreateEventData {
+  name: string;
+  description?: string;
+  venue: string;
+  startTime: string;
+  endTime?: string;
+  capacity: number;
+  price: string;
+  category: EventCategory;
+  tags?: string[];
+  imageUrl?: string;
+}
+
+export interface UpdateEventData extends Partial<CreateEventData> {
+  id?: string;
+}
+
+export interface BookingData {
+  eventId: string;
+  quantity: number;
+}
+
+export interface AnalyticsData {
+  totalEvents: number;
+  totalBookings: number;
+  totalRevenue: number;
+  totalUsers: number;
+  activeUsers: number;
+  eventsByCategory: Array<{ category: string; count: number }>;
+  revenueByMonth: Array<{ month: string; revenue: number }>;
+  topEvents: Array<{ id: string; name: string; bookings: number }>;
+}
+
 export interface Booking {
   id: string;
   userId: string;

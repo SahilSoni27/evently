@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Response } from 'express';
 import { z } from 'zod';
 import {
   createBooking,
@@ -21,6 +22,17 @@ router.post(
   requireAuth,
   validateBody(createBookingSchema),
   createBooking
+);
+
+// GET /api/bookings/my - Get current user's bookings (convenience endpoint)
+router.get(
+  '/my',
+  requireAuth,
+  (req: any, res: any, next: any) => {
+    // Set the userId parameter to current user's ID and call getUserBookings
+    req.params.userId = req.user.id;
+    getUserBookings(req, res, next);
+  }
 );
 
 // GET /api/bookings/user/:userId - Get user bookings (Own bookings or Admin)

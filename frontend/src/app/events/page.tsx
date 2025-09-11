@@ -5,7 +5,8 @@ import { apiClient } from '@/lib/api';
 import { Event } from '@/types';
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
-import { Calendar, MapPin, Users, Search, Filter, Tag, X, Clock, DollarSign } from 'lucide-react';
+import Image from 'next/image';
+import { Calendar, MapPin, Users, Search, Filter, Tag, X, DollarSign } from 'lucide-react';
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -280,11 +281,14 @@ export default function EventsPage() {
                 <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                   {/* Event Image */}
                   {event.imageUrl ? (
-                    <img
-                      src={event.imageUrl}
-                      alt={event.name}
-                      className="w-full h-48 object-cover"
-                    />
+                    <div className="w-full h-48 relative">
+                      <Image
+                        src={event.imageUrl}
+                        alt={event.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   ) : (
                     <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                       <Calendar className="h-12 w-12 text-white" />

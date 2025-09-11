@@ -7,7 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Event } from '@/types';
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
-import { Calendar, MapPin, Users, ArrowLeft, CreditCard, Info, Tag, Clock, DollarSign } from 'lucide-react';
+import Image from 'next/image';
+import { Calendar, MapPin, Users, ArrowLeft, CreditCard, Info, Tag } from 'lucide-react';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -182,11 +183,12 @@ export default function EventDetailPage() {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Event Image */}
           {event.imageUrl && (
-            <div className="w-full h-64 md:h-80">
-              <img
+            <div className="w-full h-64 md:h-80 relative">
+              <Image
                 src={event.imageUrl}
                 alt={event.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
           )}
@@ -358,7 +360,7 @@ export default function EventDetailPage() {
                 {isAuthenticated && (
                   <div className="mt-4 text-xs text-gray-500">
                     <Info className="h-4 w-4 inline mr-1" />
-                    Your booking will be confirmed immediately and you'll receive a confirmation email.
+                    Your booking will be confirmed immediately and you&apos;ll receive a confirmation email.
                   </div>
                 )}
               </div>

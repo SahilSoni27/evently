@@ -63,7 +63,9 @@ model Event {
   id                String        @id @default(cuid())
   name              String
   description       String?
-  venue             String
+  venue             String        // Legacy venue string
+  venueDetails      Venue?        @relation("EventVenue", fields: [venueId], references: [id])
+  venueId           String?       // Optional reference to Venue model
   startTime         DateTime
   endTime           DateTime?
   capacity          Int
@@ -73,6 +75,7 @@ model Event {
   tags              String[] // Array of tags for better filtering
   imageUrl          String? // Event image
   version           Int           @default(0) // For optimistic locking
+  seatLevelBooking  Boolean       @default(false) // Enable seat selection for this event
   bookings          Booking[]
   waitlist          Waitlist[]
   createdAt         DateTime      @default(now())
@@ -94,6 +97,7 @@ model Booking {
   totalPrice     Decimal       @default(0) @db.Decimal(10, 2)
   status         BookingStatus @default(CONFIRMED)
   idempotencyKey String? // For preventing duplicate bookings
+  seatBookings   SeatBooking[] // For seat-level bookings
   payments       Payment[] // One booking can have multiple payment attempts
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -193,4 +197,71 @@ model PushSubscription {
   updatedAt DateTime @updatedAt
 
   @@map("push_subscriptions")
+}
+
+model Venue {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  capacity    Int
+  description String?
+  layout      Json?    // Store seat layout as JSON
+  sections    VenueSection[]
+  events      Event[]  @relation("EventVenue")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("venues")
+}
+
+model VenueSection {
+  id        String   @id @default(cuid())
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId   String
+  name      String   // e.g., "Section A", "VIP", "General Admission"
+  capacity  Int
+  priceMultiplier Decimal @default(1.0) @db.Decimal(3, 2) // Price multiplier for this section
+  seats     Seat[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("venue_sections")
+}
+
+model Seat {
+  id        String       @id @default(cuid())
+  section   VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId String
+  row       String       // e.g., "A", "B", "1", "2"
+  number    String       // e.g., "1", "2", "15"
+  seatType  SeatType     @default(REGULAR)
+  isBlocked Boolean      @default(false) // For maintenance, VIP, etc.
+  bookings  SeatBooking[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([sectionId, row, number])
+  @@map("seats")
+}
+
+model SeatBooking {
+  id        String   @id @default(cuid())
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String
+  seat      Seat     @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  seatId    String
+  price     Decimal  @db.Decimal(10, 2) // Actual price paid for this seat
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([bookingId, seatId])
+  @@map("seat_bookings")
+}
+
+enum SeatType {
+  REGULAR
+  VIP
+  PREMIUM
+  ACCESSIBLE
+  STANDING
 }

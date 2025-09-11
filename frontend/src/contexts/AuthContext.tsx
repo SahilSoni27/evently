@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response: any = await apiClient.login({ email, password });
+      const response = await apiClient.login({ email, password }) as { data: { user: User; token: string } };
       
       const { user: userData, token: userToken } = response.data;
       
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      const response: any = await apiClient.register({ name, email, password });
+      const response = await apiClient.register({ name, email, password }) as { data: { user: User; token: string } };
       
       const { user: userData, token: userToken } = response.data;
       

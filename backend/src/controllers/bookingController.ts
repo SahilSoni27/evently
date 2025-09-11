@@ -192,7 +192,16 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
 
     // Schedule background jobs
     try {
-      // Send booking confirmation email
+      // Generate QR code for email
+      let qrCodeData = '';
+      try {
+        const { TicketService } = await import('../services/ticketService');
+        qrCodeData = await TicketService.generateQRCode(result.booking.id);
+      } catch (error) {
+        console.error('Failed to generate QR code for email:', error);
+      }
+
+      // Send booking confirmation email with QR code
       await JobScheduler.scheduleBookingConfirmation({
         type: 'booking_confirmation',
         to: result.booking.user.email,
@@ -202,6 +211,8 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
         userName: result.booking.user.name || 'Guest',
         eventStartTime: result.booking.event.startTime,
         venue: result.booking.event.venue,
+        qrCodeData,
+        ticketNumber: `EVT-${result.booking.id.substring(0, 8).toUpperCase()}`
       });
 
       // Schedule event reminder (24 hours before event)
@@ -251,7 +262,7 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
     }
   }
 
-  // Add ticket links to successful booking responses
+  // Enhanced response with toast-friendly messages
   const response: any = {
     status: 'success',
     message,
@@ -262,6 +273,37 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
           download: `/api/tickets/${result.booking.id}/download`,
           qrCode: `/api/tickets/${result.booking.id}/qr`,
           details: `/api/tickets/${result.booking.id}/details`
+        },
+        // Toast-friendly confirmation message
+        toast: {
+          type: 'success',
+          title: '🎉 Booking Confirmed!',
+          message: `Congratulations! Your booking for "${result.booking.event.name}" has been confirmed. Your tickets are ready!`,
+          duration: 8000,
+          actions: [
+            {
+              label: 'Download Ticket',
+              action: 'download_ticket',
+              url: `/api/tickets/${result.booking.id}/download`
+            },
+            {
+              label: 'View QR Code',
+              action: 'view_qr',
+              url: `/api/tickets/${result.booking.id}/qr`
+            }
+          ]
+        },
+        // Notification details for frontend
+        notification: {
+          type: 'booking_confirmation',
+          title: '🎫 Booking Confirmed',
+          message: `Your booking for "${result.booking.event.name}" has been confirmed!`,
+          eventName: result.booking.event.name,
+          venue: result.booking.event.venue,
+          eventDate: result.booking.event.startTime,
+          bookingId: result.booking.id,
+          quantity: result.booking.quantity,
+          totalPrice: Number(result.booking.totalPrice)
         }
       })
     }
@@ -310,11 +352,79 @@ export const getUserBookings = asyncHandler(async (req: any, res: Response) => {
     orderBy: { createdAt: 'desc' }
   });
 
+  // Enhance bookings with ticket download links and proper formatting
+  const enhancedBookings = bookings.map(booking => ({
+    id: booking.id,
+    quantity: booking.quantity,
+    totalPrice: Number(booking.totalPrice),
+    status: booking.status,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+    event: booking.event,
+    // Add ticket information for confirmed bookings
+    ticket: booking.status === 'CONFIRMED' ? {
+      ticketNumber: `EVT-${booking.id.substring(0, 8).toUpperCase()}`,
+      downloadUrl: `/api/tickets/${booking.id}/download`,
+      qrCodeUrl: `/api/tickets/${booking.id}/qr`,
+      detailsUrl: `/api/tickets/${booking.id}/details`,
+      canDownload: true,
+      canView: true
+    } : null,
+    // User-friendly status and actions
+    displayStatus: booking.status === 'CONFIRMED' ? '✅ Confirmed' : 
+                  booking.status === 'CANCELLED' ? '❌ Cancelled' : 
+                  '⏳ Pending',
+    actions: booking.status === 'CONFIRMED' ? [
+      {
+        label: 'Download Ticket',
+        action: 'download',
+        url: `/api/tickets/${booking.id}/download`,
+        icon: '📱'
+      },
+      {
+        label: 'View QR Code',
+        action: 'view_qr',
+        url: `/api/tickets/${booking.id}/qr`,
+        icon: '📱'
+      },
+      {
+        label: 'Cancel Booking',
+        action: 'cancel',
+        url: `/api/bookings/${booking.id}`,
+        method: 'DELETE',
+        icon: '❌',
+        confirm: true
+      }
+    ] : booking.status === 'PENDING' ? [
+      {
+        label: 'Cancel Booking',
+        action: 'cancel',
+        url: `/api/bookings/${booking.id}`,
+        method: 'DELETE',
+        icon: '❌',
+        confirm: true
+      }
+    ] : []
+  }));
+
   res.status(200).json({
     status: 'success',
+    message: `📋 Found ${enhancedBookings.length} bookings for ${user.name || user.email}`,
     data: {
       user,
-      bookings
+      bookings: enhancedBookings,
+      summary: {
+        total: enhancedBookings.length,
+        confirmed: enhancedBookings.filter(b => b.status === 'CONFIRMED').length,
+        cancelled: enhancedBookings.filter(b => b.status === 'CANCELLED').length,
+        pending: enhancedBookings.filter(b => b.status === 'PENDING').length
+      },
+      toast: {
+        type: 'info',
+        title: 'My Bookings',
+        message: `You have ${enhancedBookings.filter(b => b.status === 'CONFIRMED').length} confirmed bookings`,
+        duration: 3000
+      }
     }
   });
 });
@@ -461,10 +571,67 @@ export const getAllBookings = asyncHandler(async (req: any, res: Response) => {
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
 
+  // Enhance bookings with admin-friendly information and download links
+  const enhancedBookings = bookings.map(booking => ({
+    id: booking.id,
+    quantity: booking.quantity,
+    totalPrice: Number(booking.totalPrice),
+    status: booking.status,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+    user: booking.user,
+    event: booking.event,
+    // Admin can download any confirmed ticket
+    ticket: booking.status === 'CONFIRMED' ? {
+      ticketNumber: `EVT-${booking.id.substring(0, 8).toUpperCase()}`,
+      downloadUrl: `/api/tickets/${booking.id}/download`,
+      qrCodeUrl: `/api/tickets/${booking.id}/qr`,
+      detailsUrl: `/api/tickets/${booking.id}/details`,
+      canDownload: true,
+      canView: true
+    } : null,
+    // Admin-specific display
+    displayStatus: booking.status === 'CONFIRMED' ? '✅ Confirmed' : 
+                  booking.status === 'CANCELLED' ? '❌ Cancelled' : 
+                  '⏳ Pending',
+    adminActions: [
+      ...(booking.status === 'CONFIRMED' ? [
+        {
+          label: 'Download Ticket',
+          action: 'download',
+          url: `/api/tickets/${booking.id}/download`,
+          icon: '📱'
+        },
+        {
+          label: 'View QR Code',
+          action: 'view_qr',
+          url: `/api/tickets/${booking.id}/qr`,
+          icon: '📱'
+        }
+      ] : []),
+      {
+        label: 'View User Details',
+        action: 'view_user',
+        url: `/api/admin/users/${booking.user.id}/details`,
+        icon: '👤'
+      },
+      {
+        label: 'Cancel Booking',
+        action: 'cancel',
+        url: `/api/bookings/${booking.id}`,
+        method: 'DELETE',
+        icon: '❌',
+        confirm: true,
+        disabled: booking.status === 'CANCELLED'
+      }
+    ]
+  }));
+
   res.status(200).json({
     status: 'success',
+    message: `📊 Admin View: ${totalCount} total bookings`,
     data: {
-      bookings,
+      bookings: enhancedBookings,
       pagination: {
         currentPage: page,
         totalPages,
@@ -472,6 +639,18 @@ export const getAllBookings = asyncHandler(async (req: any, res: Response) => {
         limit,
         hasNextPage,
         hasPrevPage
+      },
+      summary: {
+        total: totalCount,
+        confirmed: bookings.filter(b => b.status === 'CONFIRMED').length,
+        cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
+        pending: bookings.filter(b => b.status === 'PENDING').length
+      },
+      toast: {
+        type: 'info',
+        title: 'Admin Bookings',
+        message: `Viewing ${bookings.length} of ${totalCount} bookings`,
+        duration: 3000
       }
     }
   });

@@ -1,3 +1,5 @@
+import { CreateEventData, UpdateEventData } from '../types';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 class ApiClient {
@@ -89,14 +91,14 @@ class ApiClient {
     return this.request(`/api/events/${id}`);
   }
 
-  async createEvent(eventData: any) {
+  async createEvent(eventData: CreateEventData) {
     return this.request('/api/events', {
       method: 'POST',
       body: JSON.stringify(eventData),
     });
   }
 
-  async updateEvent(id: string, eventData: any) {
+  async updateEvent(id: string, eventData: UpdateEventData) {
     return this.request(`/api/events/${id}`, {
       method: 'PUT',
       body: JSON.stringify(eventData),
@@ -144,7 +146,7 @@ class ApiClient {
   async processPayment(paymentData: {
     bookingId: string;
     paymentMethod: string;
-    cardDetails?: any;
+    cardDetails?: Record<string, unknown>;
   }) {
     return this.request('/api/payments/process', {
       method: 'POST',

@@ -13,12 +13,14 @@ import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import bookingRoutes from './routes/bookings';
 import adminAnalyticsRoutes from './routes/adminAnalytics';
+import adminDashboardRoutes from './routes/adminDashboard';
 import paymentRoutes from './routes/payments';
 import queueManagementRoutes from './routes/queueManagement';
 import waitlistRoutes from './routes/waitlist';
 import ticketRoutes from './routes/tickets';
 import notificationRoutes from './routes/notifications';
 import searchRoutes from './routes/search';
+import docsRoutes from './routes/docs';
 
 // Load environment variables
 dotenv.config();
@@ -94,12 +96,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/admin/dashboard', adminAnalyticsRoutes);
+app.use('/api/admin/analytics', adminAnalyticsRoutes);
+app.use('/api/admin', adminDashboardRoutes);
 app.use('/api/admin/queues', queueManagementRoutes);
 app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
+
+// API Documentation
+app.use('/api-docs', docsRoutes);
 
 // Test routes removed for now - will test via existing endpoints
 

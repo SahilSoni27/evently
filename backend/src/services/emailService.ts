@@ -265,12 +265,30 @@ class EmailService {
     quantity: number;
     totalPrice: number;
     bookingId: string;
+    qrCodeData?: string; // Add QR code data
+    ticketNumber?: string; // Add proper ticket number
   }): Promise<boolean> {
+    // If QR code data is not provided, generate it
+    if (!data.qrCodeData) {
+      try {
+        const { TicketService } = await import('./ticketService');
+        data.qrCodeData = await TicketService.generateQRCode(data.bookingId);
+      } catch (error) {
+        console.error('Failed to generate QR code for email:', error);
+        data.qrCodeData = ''; // Fallback to empty string
+      }
+    }
+
+    // Generate proper ticket number if not provided
+    if (!data.ticketNumber) {
+      data.ticketNumber = `EVT-${data.bookingId.substring(0, 8).toUpperCase()}`;
+    }
+
     return this.sendEmailWithTemplate(
       'booking-confirmation',
       data,
       data.to,
-      `Booking Confirmed: ${data.eventName}`
+      `🎫 Booking Confirmed: ${data.eventName}`
     );
   }
 

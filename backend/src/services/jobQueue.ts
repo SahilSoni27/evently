@@ -20,6 +20,8 @@ export interface EmailJobData {
   customMessage?: string;
   ticketQuantity?: number;
   totalPrice?: number;
+  qrCodeData?: string; // QR code for tickets
+  ticketNumber?: string; // Formatted ticket number
 }
 
 // Analytics job interface

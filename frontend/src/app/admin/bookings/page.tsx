@@ -20,12 +20,12 @@ function AdminBookingsPage() {
     setLoading(true);
     try {
       const response = await apiClient.getAllBookings(page, 20, status || undefined);
-      const data = (response as any)?.data;
+      const data = response as { data: { bookings: Booking[]; pagination: { totalPages: number; currentPage: number } } };
       
-      if (data) {
-        setBookings(data.bookings || []);
-        setTotalPages(data.pagination?.totalPages || 1);
-        setCurrentPage(data.pagination?.currentPage || 1);
+      if (data?.data) {
+        setBookings(data.data.bookings || []);
+        setTotalPages(data.data.pagination?.totalPages || 1);
+        setCurrentPage(data.data.pagination?.currentPage || 1);
       }
     } catch (error) {
       console.error('Failed to load bookings:', error);
