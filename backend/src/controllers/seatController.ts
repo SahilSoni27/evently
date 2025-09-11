@@ -152,8 +152,8 @@ export const bookSeats = asyncHandler(async (req: Request, res: Response) => {
   const allSeats = event.venueDetails?.sections.flatMap(section => section.seats) || [];
   
   // Check if all requested seats exist and are available
-  const unavailableSeats = [];
-  const availableSeats = [];
+  const unavailableSeats: any[] = [];
+  const availableSeats: any[] = [];
   
   for (const seatId of seatIds) {
     const seat = allSeats.find(s => s.id === seatId);
@@ -270,7 +270,7 @@ export const bookSeats = asyncHandler(async (req: Request, res: Response) => {
       toast: {
         type: 'success',
         title: '🎉 Seats Reserved!',
-        message: `Congratulations! Your ${seatIds.length} seat(s) for "${result.booking.event.name}" have been confirmed!`,
+        message: `Congratulations! Your ${seatIds.length} seat(s) for "${(result.booking as any).event?.name || 'the event'}" have been confirmed!`,
         duration: 8000,
         actions: [
           {

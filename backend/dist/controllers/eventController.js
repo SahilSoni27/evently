@@ -74,6 +74,7 @@ exports.getEvents = (0, errorHandler_1.asyncHandler)(async (req, res) => {
 // GET /api/events/:id - Get single event details
 exports.getEventById = (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const { id } = req.params;
+    const userId = req.user?.id;
     const event = await prisma_1.default.event.findUnique({
         where: { id },
         include: {
@@ -93,17 +94,78 @@ exports.getEventById = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                 },
                 orderBy: { createdAt: 'desc' }
             },
+            waitlist: {
+                select: {
+                    id: true,
+                    position: true,
+                    status: true,
+                    userId: true,
+                    createdAt: true
+                },
+                orderBy: { position: 'asc' }
+            },
             _count: {
-                select: { bookings: true }
+                select: {
+                    bookings: true,
+                    waitlist: true
+                }
             }
         }
     });
     if (!event) {
         throw (0, errorHandler_1.createError)('Event not found', 404);
     }
+    // Check user's booking status
+    let userBooking = null;
+    let userWaitlistPosition = null;
+    let canJoinWaitlist = false;
+    if (userId) {
+        // Check if user has existing booking
+        userBooking = event.bookings.find(booking => booking.user.id === userId);
+        // Check if user is on waitlist
+        const userWaitlistEntry = event.waitlist.find(entry => entry.userId === userId);
+        if (userWaitlistEntry) {
+            userWaitlistPosition = userWaitlistEntry.position;
+        }
+        // User can join waitlist if:
+        // - Event is full (availableCapacity = 0)
+        // - User doesn't have a booking
+        // - User is not already on waitlist
+        // - Event is in the future
+        canJoinWaitlist = event.availableCapacity === 0 &&
+            !userBooking &&
+            !userWaitlistEntry &&
+            event.startTime > new Date();
+    }
+    const responseData = {
+        event: {
+            ...event,
+            // Remove detailed user info from bookings for privacy
+            bookings: event.bookings.map(booking => ({
+                id: booking.id,
+                quantity: booking.quantity,
+                status: booking.status,
+                createdAt: booking.createdAt
+            }))
+        },
+        userStatus: userId ? {
+            hasBooking: !!userBooking,
+            bookingId: userBooking?.id,
+            waitlistPosition: userWaitlistPosition,
+            canJoinWaitlist,
+            canBook: event.availableCapacity > 0 && !userBooking && event.startTime > new Date()
+        } : null,
+        availability: {
+            isFull: event.availableCapacity === 0,
+            available: event.availableCapacity,
+            total: event.capacity,
+            waitlistCount: event._count.waitlist,
+            bookingsCount: event._count.bookings
+        }
+    };
     res.status(200).json({
         status: 'success',
-        data: { event }
+        data: responseData
     });
 });
 // POST /api/events - Create new event (Admin only)

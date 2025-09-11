@@ -1,0 +1,264 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getRealTimeStats = exports.getConversionFunnel = exports.getAdvancedAnalytics = void 0;
+const prisma_1 = __importDefault(require("../lib/prisma"));
+const errorHandler_1 = require("../middleware/errorHandler");
+// GET /api/admin/analytics/advanced - Get advanced analytics
+exports.getAdvancedAnalytics = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const { startDate, endDate, eventId } = req.query;
+    // Date range filter
+    const dateFilter = {};
+    if (startDate)
+        dateFilter.gte = new Date(startDate);
+    if (endDate)
+        dateFilter.lte = new Date(endDate);
+    // Event filter
+    const eventFilter = eventId ? { eventId: eventId } : {};
+    const [mostBookedEvents, cancellationRates, dailyBookingStats, revenueAnalytics, userEngagementStats, waitlistAnalytics] = await Promise.all([
+        // Most booked events
+        prisma_1.default.$queryRaw `
+      SELECT 
+        e.id,
+        e.name,
+        e.venue,
+        e.start_time,
+        COUNT(b.id) as total_bookings,
+        SUM(b.quantity) as total_tickets,
+        SUM(b.total_price::numeric) as total_revenue
+      FROM events e
+      LEFT JOIN bookings b ON e.id = b.event_id 
+        AND b.status = 'CONFIRMED'
+        ${Object.keys(dateFilter).length > 0 ? 'AND b.created_at BETWEEN $1 AND $2' : ''}
+      ${eventId ? 'WHERE e.id = $' + (Object.keys(dateFilter).length > 0 ? '3' : '1') : ''}
+      GROUP BY e.id, e.name, e.venue, e.start_time
+      ORDER BY total_bookings DESC
+      LIMIT 10
+    `,
+        // Cancellation rates
+        prisma_1.default.$queryRaw `
+      SELECT 
+        COUNT(CASE WHEN status = 'CONFIRMED' THEN 1 END) as confirmed_bookings,
+        COUNT(CASE WHEN status = 'CANCELLED' THEN 1 END) as cancelled_bookings,
+        COUNT(*) as total_bookings,
+        ROUND(
+          COUNT(CASE WHEN status = 'CANCELLED' THEN 1 END) * 100.0 / 
+          NULLIF(COUNT(*), 0), 2
+        ) as cancellation_rate
+      FROM bookings b
+      ${Object.keys(dateFilter).length > 0 ? 'WHERE b.created_at BETWEEN $1 AND $2' : ''}
+      ${eventId ? (Object.keys(dateFilter).length > 0 ? 'AND b.event_id = $3' : 'WHERE b.event_id = $1') : ''}
+    `,
+        // Daily booking stats
+        prisma_1.default.$queryRaw `
+      SELECT 
+        DATE(created_at) as booking_date,
+        COUNT(*) as bookings_count,
+        SUM(quantity) as tickets_sold,
+        SUM(total_price::numeric) as daily_revenue,
+        COUNT(DISTINCT user_id) as unique_users
+      FROM bookings
+      WHERE status = 'CONFIRMED'
+        ${Object.keys(dateFilter).length > 0 ? 'AND created_at BETWEEN $1 AND $2' : ''}
+        ${eventId ? (Object.keys(dateFilter).length > 0 ? 'AND event_id = $3' : 'AND event_id = $1') : ''}
+      GROUP BY DATE(created_at)
+      ORDER BY booking_date DESC
+      LIMIT 30
+    `,
+        // Revenue analytics by category
+        prisma_1.default.$queryRaw `
+      SELECT 
+        e.category,
+        COUNT(b.id) as bookings_count,
+        SUM(b.total_price::numeric) as total_revenue,
+        AVG(b.total_price::numeric) as avg_booking_value,
+        SUM(b.quantity) as tickets_sold
+      FROM events e
+      LEFT JOIN bookings b ON e.id = b.event_id AND b.status = 'CONFIRMED'
+      ${Object.keys(dateFilter).length > 0 ? 'WHERE b.created_at BETWEEN $1 AND $2' : ''}
+      ${eventId ? (Object.keys(dateFilter).length > 0 ? 'AND e.id = $3' : 'WHERE e.id = $1') : ''}
+      GROUP BY e.category
+      ORDER BY total_revenue DESC
+    `,
+        // User engagement stats
+        prisma_1.default.$queryRaw `
+      SELECT 
+        COUNT(DISTINCT b.user_id) as active_users,
+        AVG(user_bookings.booking_count) as avg_bookings_per_user,
+        MAX(user_bookings.booking_count) as max_bookings_per_user
+      FROM (
+        SELECT 
+          user_id,
+          COUNT(*) as booking_count
+        FROM bookings
+        WHERE status = 'CONFIRMED'
+          ${Object.keys(dateFilter).length > 0 ? 'AND created_at BETWEEN $1 AND $2' : ''}
+          ${eventId ? (Object.keys(dateFilter).length > 0 ? 'AND event_id = $3' : 'AND event_id = $1') : ''}
+        GROUP BY user_id
+      ) user_bookings
+      CROSS JOIN bookings b
+      WHERE b.status = 'CONFIRMED'
+        ${Object.keys(dateFilter).length > 0 ? 'AND b.created_at BETWEEN $1 AND $2' : ''}
+        ${eventId ? (Object.keys(dateFilter).length > 0 ? 'AND b.event_id = $3' : 'AND b.event_id = $1') : ''}
+    `,
+        // Waitlist analytics
+        prisma_1.default.$queryRaw `
+      SELECT 
+        e.name as event_name,
+        COUNT(w.id) as total_waitlist_entries,
+        COUNT(CASE WHEN w.status = 'ACTIVE' THEN 1 END) as active_waitlist,
+        COUNT(CASE WHEN w.status = 'NOTIFIED' THEN 1 END) as notified_waitlist,
+        COUNT(CASE WHEN w.status = 'EXPIRED' THEN 1 END) as expired_waitlist,
+        AVG(w.position) as avg_waitlist_position
+      FROM waitlist w
+      JOIN events e ON w.event_id = e.id
+      ${Object.keys(dateFilter).length > 0 ? 'WHERE w.created_at BETWEEN $1 AND $2' : ''}
+      ${eventId ? (Object.keys(dateFilter).length > 0 ? 'AND e.id = $3' : 'WHERE e.id = $1') : ''}
+      GROUP BY e.id, e.name
+      ORDER BY total_waitlist_entries DESC
+      LIMIT 10
+    `
+    ]);
+    res.json({
+        status: 'success',
+        data: {
+            mostBookedEvents: mostBookedEvents.map((event) => ({
+                ...event,
+                total_revenue: Number(event.total_revenue || 0),
+                total_bookings: Number(event.total_bookings || 0),
+                total_tickets: Number(event.total_tickets || 0)
+            })),
+            cancellationRates: {
+                confirmed: Number(cancellationRates[0]?.confirmed_bookings || 0),
+                cancelled: Number(cancellationRates[0]?.cancelled_bookings || 0),
+                total: Number(cancellationRates[0]?.total_bookings || 0),
+                cancellationRate: Number(cancellationRates[0]?.cancellation_rate || 0)
+            },
+            dailyStats: dailyBookingStats.map((stat) => ({
+                date: stat.booking_date,
+                bookings: Number(stat.bookings_count),
+                tickets: Number(stat.tickets_sold),
+                revenue: Number(stat.daily_revenue || 0),
+                uniqueUsers: Number(stat.unique_users)
+            })),
+            revenueByCategory: revenueAnalytics.map((category) => ({
+                category: category.category,
+                bookings: Number(category.bookings_count || 0),
+                revenue: Number(category.total_revenue || 0),
+                avgBookingValue: Number(category.avg_booking_value || 0),
+                ticketsSold: Number(category.tickets_sold || 0)
+            })),
+            userEngagement: {
+                activeUsers: Number(userEngagementStats[0]?.active_users || 0),
+                avgBookingsPerUser: Number(userEngagementStats[0]?.avg_bookings_per_user || 0),
+                maxBookingsPerUser: Number(userEngagementStats[0]?.max_bookings_per_user || 0)
+            },
+            waitlistAnalytics: waitlistAnalytics.map((waitlist) => ({
+                eventName: waitlist.event_name,
+                totalEntries: Number(waitlist.total_waitlist_entries || 0),
+                active: Number(waitlist.active_waitlist || 0),
+                notified: Number(waitlist.notified_waitlist || 0),
+                expired: Number(waitlist.expired_waitlist || 0),
+                avgPosition: Number(waitlist.avg_waitlist_position || 0)
+            }))
+        }
+    });
+});
+// GET /api/admin/analytics/conversion-funnel - Get booking conversion funnel
+exports.getConversionFunnel = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const dateFilter = {};
+    if (startDate)
+        dateFilter.gte = new Date(startDate);
+    if (endDate)
+        dateFilter.lte = new Date(endDate);
+    // This is a simplified funnel - in a real app you'd track page views, etc.
+    const [eventViews, // We'll use total events as proxy
+    waitlistJoins, bookingAttempts, successfulBookings] = await Promise.all([
+        prisma_1.default.event.count(),
+        prisma_1.default.waitlist.count({
+            where: {
+                ...(Object.keys(dateFilter).length > 0 && { createdAt: dateFilter })
+            }
+        }),
+        prisma_1.default.booking.count({
+            where: {
+                ...(Object.keys(dateFilter).length > 0 && { createdAt: dateFilter })
+            }
+        }),
+        prisma_1.default.booking.count({
+            where: {
+                status: 'CONFIRMED',
+                ...(Object.keys(dateFilter).length > 0 && { createdAt: dateFilter })
+            }
+        })
+    ]);
+    const funnel = [
+        { stage: 'Event Views', count: eventViews, percentage: 100 },
+        { stage: 'Waitlist Joins', count: waitlistJoins, percentage: Math.round((waitlistJoins / eventViews) * 100) },
+        { stage: 'Booking Attempts', count: bookingAttempts, percentage: Math.round((bookingAttempts / eventViews) * 100) },
+        { stage: 'Successful Bookings', count: successfulBookings, percentage: Math.round((successfulBookings / eventViews) * 100) }
+    ];
+    res.json({
+        status: 'success',
+        data: {
+            funnel,
+            conversionRate: Math.round((successfulBookings / eventViews) * 100),
+            totalSteps: funnel.length
+        }
+    });
+});
+// GET /api/admin/analytics/real-time - Get real-time statistics
+exports.getRealTimeStats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const now = new Date();
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
+    const [bookingsLast24h, bookingsLastHour, waitlistLast24h, activeUsers, upcomingEvents] = await Promise.all([
+        prisma_1.default.booking.count({
+            where: {
+                createdAt: { gte: last24Hours },
+                status: 'CONFIRMED'
+            }
+        }),
+        prisma_1.default.booking.count({
+            where: {
+                createdAt: { gte: lastHour },
+                status: 'CONFIRMED'
+            }
+        }),
+        prisma_1.default.waitlist.count({
+            where: {
+                createdAt: { gte: last24Hours }
+            }
+        }),
+        prisma_1.default.booking.findMany({
+            where: {
+                createdAt: { gte: lastHour }
+            },
+            select: { userId: true },
+            distinct: ['userId']
+        }),
+        prisma_1.default.event.count({
+            where: {
+                startTime: { gte: now }
+            }
+        })
+    ]);
+    res.json({
+        status: 'success',
+        data: {
+            bookings: {
+                last24Hours: bookingsLast24h,
+                lastHour: bookingsLastHour
+            },
+            waitlist: {
+                last24Hours: waitlistLast24h
+            },
+            activeUsers: activeUsers.length,
+            upcomingEvents,
+            timestamp: now.toISOString()
+        }
+    });
+});

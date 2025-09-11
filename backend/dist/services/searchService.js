@@ -142,7 +142,7 @@ class SearchService {
                 by: ['venue'],
                 where: baseWhere,
                 _count: true,
-                orderBy: { _count: { _all: 'desc' } },
+                orderBy: { _count: { venue: 'desc' } },
                 take: 10
             }),
             // Price range
@@ -167,11 +167,11 @@ class SearchService {
         return {
             categories: categoryStats.map(stat => ({
                 category: stat.category,
-                count: stat._count
+                count: stat._count._all || stat._count
             })),
             venues: venueStats.map(stat => ({
                 venue: stat.venue,
-                count: stat._count
+                count: stat._count._all || stat._count
             })),
             priceRange: {
                 min: Number(priceStats._min.price) || 0,
@@ -247,13 +247,13 @@ class SearchService {
         const popularCategories = await prisma_1.default.event.groupBy({
             by: ['category'],
             _count: true,
-            orderBy: { _count: { _all: 'desc' } },
+            orderBy: { _count: { category: 'desc' } },
             take: 5
         });
         const popularVenues = await prisma_1.default.event.groupBy({
             by: ['venue'],
             _count: true,
-            orderBy: { _count: { _all: 'desc' } },
+            orderBy: { _count: { venue: 'desc' } },
             take: 3
         });
         return [

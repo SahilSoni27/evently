@@ -134,7 +134,7 @@ export const getAdvancedAnalytics = asyncHandler(async (req: Request, res: Respo
   res.json({
     status: 'success',
     data: {
-      mostBookedEvents: mostBookedEvents.map((event: any) => ({
+      mostBookedEvents: (mostBookedEvents as any[]).map((event: any) => ({
         ...event,
         total_revenue: Number(event.total_revenue || 0),
         total_bookings: Number(event.total_bookings || 0),
@@ -146,14 +146,14 @@ export const getAdvancedAnalytics = asyncHandler(async (req: Request, res: Respo
         total: Number((cancellationRates as any)[0]?.total_bookings || 0),
         cancellationRate: Number((cancellationRates as any)[0]?.cancellation_rate || 0)
       },
-      dailyStats: dailyBookingStats.map((stat: any) => ({
+      dailyStats: (dailyBookingStats as any[]).map((stat: any) => ({
         date: stat.booking_date,
         bookings: Number(stat.bookings_count),
         tickets: Number(stat.tickets_sold),
         revenue: Number(stat.daily_revenue || 0),
         uniqueUsers: Number(stat.unique_users)
       })),
-      revenueByCategory: revenueAnalytics.map((category: any) => ({
+      revenueByCategory: (revenueAnalytics as any[]).map((category: any) => ({
         category: category.category,
         bookings: Number(category.bookings_count || 0),
         revenue: Number(category.total_revenue || 0),
@@ -165,7 +165,7 @@ export const getAdvancedAnalytics = asyncHandler(async (req: Request, res: Respo
         avgBookingsPerUser: Number((userEngagementStats as any)[0]?.avg_bookings_per_user || 0),
         maxBookingsPerUser: Number((userEngagementStats as any)[0]?.max_bookings_per_user || 0)
       },
-      waitlistAnalytics: waitlistAnalytics.map((waitlist: any) => ({
+      waitlistAnalytics: (waitlistAnalytics as any[]).map((waitlist: any) => ({
         eventName: waitlist.event_name,
         totalEntries: Number(waitlist.total_waitlist_entries || 0),
         active: Number(waitlist.active_waitlist || 0),

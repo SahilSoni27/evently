@@ -49,12 +49,14 @@ const auth_1 = __importDefault(require("./routes/auth"));
 const events_1 = __importDefault(require("./routes/events"));
 const bookings_1 = __importDefault(require("./routes/bookings"));
 const adminAnalytics_1 = __importDefault(require("./routes/adminAnalytics"));
+const adminDashboard_1 = __importDefault(require("./routes/adminDashboard"));
 const payments_1 = __importDefault(require("./routes/payments"));
 const queueManagement_1 = __importDefault(require("./routes/queueManagement"));
 const waitlist_1 = __importDefault(require("./routes/waitlist"));
 const tickets_1 = __importDefault(require("./routes/tickets"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
 const search_1 = __importDefault(require("./routes/search"));
+const docs_1 = __importDefault(require("./routes/docs"));
 // Load environment variables
 dotenv_1.default.config();
 // Initialize workers in production
@@ -121,12 +123,15 @@ app.use('/api/auth', auth_1.default);
 app.use('/api/events', events_1.default);
 app.use('/api/bookings', bookings_1.default);
 app.use('/api/payments', payments_1.default);
-app.use('/api/admin/dashboard', adminAnalytics_1.default);
+app.use('/api/admin/analytics', adminAnalytics_1.default);
+app.use('/api/admin', adminDashboard_1.default);
 app.use('/api/admin/queues', queueManagement_1.default);
 app.use('/api/waitlist', waitlist_1.default);
 app.use('/api/tickets', tickets_1.default);
 app.use('/api/notifications', notifications_1.default);
 app.use('/api/search', search_1.default);
+// API Documentation
+app.use('/api-docs', docs_1.default);
 // Test routes removed for now - will test via existing endpoints
 // Placeholder endpoints for routes we haven't implemented yet
 app.get('/api/admin', (req, res) => {
