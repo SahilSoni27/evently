@@ -7,14 +7,25 @@ class RedisCache {
     this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
+      enableReadyCheck: false,
+      connectTimeout: 10000,
+      commandTimeout: 5000,
     });
 
     this.client.on('error', (err) => {
-      console.error('Redis error:', err);
+      console.error('❌ Redis error:', err.message);
     });
 
     this.client.on('connect', () => {
-      console.log('Connected to Redis');
+      console.log('✅ Redis connected successfully');
+    });
+
+    this.client.on('close', () => {
+      console.log('🔌 Redis connection closed');
+    });
+
+    this.client.on('reconnecting', () => {
+      console.log('🔄 Redis reconnecting...');
     });
   }
 
