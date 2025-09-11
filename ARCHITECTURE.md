@@ -89,6 +89,7 @@ frontend/
 ```
 
 **Key Features:**
+
 - **Server-Side Rendering (SSR)** for SEO and performance
 - **Client-Side Navigation** for smooth user experience
 - **Real-time Updates** via WebSocket connections
@@ -123,6 +124,7 @@ backend/
 ```
 
 **Key Features:**
+
 - **RESTful API Design** with consistent response formats
 - **JWT Authentication** with role-based access control
 - **Input Validation** using Zod schemas
@@ -182,18 +184,21 @@ backend/
 ### Key Database Features
 
 **Concurrency Control:**
+
 - **Optimistic Locking** using version fields
 - **Database Transactions** for atomic operations
 - **Row-level Locking** for critical sections
 - **Deadlock Detection** and retry mechanisms
 
 **Performance Optimizations:**
+
 - **Composite Indexes** on frequently queried columns
 - **Connection Pooling** for efficient resource usage
 - **Query Optimization** with proper JOIN strategies
 - **Partial Indexes** for conditional queries
 
 **Data Integrity:**
+
 - **Foreign Key Constraints** to maintain relationships
 - **Check Constraints** for business rule enforcement
 - **Unique Constraints** to prevent duplicates
@@ -218,6 +223,7 @@ backend/
 ```
 
 **Job Types:**
+
 - **Email Notifications** - Welcome emails, booking confirmations
 - **Push Notifications** - Real-time alerts and updates
 - **Ticket Generation** - PDF creation and QR code generation
@@ -258,17 +264,20 @@ backend/
 **Security Layers:**
 
 1. **Transport Security**
+
    - HTTPS/TLS encryption for all communications
    - Secure headers (HSTS, CSP, X-Frame-Options)
    - CORS configuration for cross-origin requests
 
 2. **Authentication Security**
+
    - JWT tokens with secure signing algorithms
    - Bcrypt password hashing with salt rounds
    - Rate limiting on authentication endpoints
    - Account lockout after failed attempts
 
 3. **Authorization Security**
+
    - Role-based access control (RBAC)
    - Resource-level permissions
    - Admin privilege checks
@@ -299,6 +308,7 @@ backend/
 ```
 
 **Key Metrics:**
+
 - **Request Metrics** - Response times, status codes, throughput
 - **Database Metrics** - Query performance, connection pool usage
 - **Business Metrics** - Booking rates, conversion rates, revenue
@@ -338,12 +348,14 @@ backend/
 **Scaling Strategies:**
 
 1. **Application Scaling**
+
    - Multiple backend instances behind load balancer
    - Stateless application design
    - Session storage in Redis
    - Horizontal pod autoscaling in Kubernetes
 
 2. **Database Scaling**
+
    - Read replicas for query distribution
    - Connection pooling (PgBouncer)
    - Partitioning for large tables
@@ -388,6 +400,7 @@ backend/
 ```
 
 This architecture provides:
+
 - **High Availability** with multiple availability zones
 - **Auto Scaling** based on traffic patterns
 - **Security** with VPC, firewalls, and encryption

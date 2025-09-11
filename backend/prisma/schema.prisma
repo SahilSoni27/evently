@@ -63,9 +63,9 @@ model Event {
   id                String        @id @default(cuid())
   name              String
   description       String?
-  venue             String        // Legacy venue string
+  venue             String // Legacy venue string
   venueDetails      Venue?        @relation("EventVenue", fields: [venueId], references: [id])
-  venueId           String?       // Optional reference to Venue model
+  venueId           String? // Optional reference to Venue model
   startTime         DateTime
   endTime           DateTime?
   capacity          Int
@@ -200,45 +200,45 @@ model PushSubscription {
 }
 
 model Venue {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   name        String
   address     String?
   capacity    Int
   description String?
-  layout      Json?    // Store seat layout as JSON
+  layout      Json? // Store seat layout as JSON
   sections    VenueSection[]
-  events      Event[]  @relation("EventVenue")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  events      Event[]        @relation("EventVenue")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@map("venues")
 }
 
 model VenueSection {
-  id        String   @id @default(cuid())
-  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  venueId   String
-  name      String   // e.g., "Section A", "VIP", "General Admission"
-  capacity  Int
-  priceMultiplier Decimal @default(1.0) @db.Decimal(3, 2) // Price multiplier for this section
-  seats     Seat[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  venue           Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId         String
+  name            String // e.g., "Section A", "VIP", "General Admission"
+  capacity        Int
+  priceMultiplier Decimal  @default(1.0) @db.Decimal(3, 2) // Price multiplier for this section
+  seats           Seat[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("venue_sections")
 }
 
 model Seat {
-  id        String       @id @default(cuid())
-  section   VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  id        String        @id @default(cuid())
+  section   VenueSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   sectionId String
-  row       String       // e.g., "A", "B", "1", "2"
-  number    String       // e.g., "1", "2", "15"
-  seatType  SeatType     @default(REGULAR)
-  isBlocked Boolean      @default(false) // For maintenance, VIP, etc.
+  row       String // e.g., "A", "B", "1", "2"
+  number    String // e.g., "1", "2", "15"
+  seatType  SeatType      @default(REGULAR)
+  isBlocked Boolean       @default(false) // For maintenance, VIP, etc.
   bookings  SeatBooking[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@unique([sectionId, row, number])
   @@map("seats")

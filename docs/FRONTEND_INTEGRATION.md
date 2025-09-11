@@ -1,9 +1,11 @@
 # Frontend Notification System Guide
 
 ## Toast Notifications
+
 All API responses now include a `toast` object for user-friendly notifications:
 
 ### Example API Response Structure:
+
 ```json
 {
   "status": "success",
@@ -32,6 +34,7 @@ All API responses now include a `toast` object for user-friendly notifications:
 ```
 
 ### Toast Types:
+
 - `success` - Green toast for successful operations
 - `error` - Red toast for errors
 - `warning` - Yellow toast for warnings
@@ -40,6 +43,7 @@ All API responses now include a `toast` object for user-friendly notifications:
 ## Frontend Integration Examples
 
 ### React Toast Component (src/components/Toast.tsx):
+
 ```typescript
 interface ToastAction {
   label: string;
@@ -103,6 +107,7 @@ export const Toast = ({ toast, onAction, onClose }: {
 ```
 
 ### API Call with Toast Integration:
+
 ```typescript
 const handleBooking = async (eventId: string, quantity: number) => {
   try {
@@ -116,7 +121,7 @@ const handleBooking = async (eventId: string, quantity: number) => {
     });
 
     const data = await response.json();
-    
+
     if (data.toast) {
       showToast(data.toast);
     }
@@ -158,17 +163,20 @@ const handleToastAction = (action: string, bookingId?: string) => {
 ## Notification History API
 
 ### Get User Notifications:
+
 ```
 GET /api/notifications/user/:userId
 ```
 
 ### Mark Notification as Read:
+
 ```
 POST /api/notifications/mark-read
 Body: { "notificationId": "notification-id" }
 ```
 
 ### Get Notification Status:
+
 ```
 GET /api/notifications/status
 ```
@@ -176,24 +184,29 @@ GET /api/notifications/status
 ## Admin Dashboard APIs
 
 ### Admin Overview:
+
 ```
 GET /api/admin/dashboard/overview
 ```
 
 ### All Users:
+
 ```
 GET /api/admin/users?page=1&limit=20&search=email
 ```
 
 ### User Details:
+
 ```
 GET /api/admin/users/:userId/details
 ```
 
 ## Push Notification Integration
+
 All booking confirmations and waitlist notifications now include both email and push notifications. The toast system provides immediate user feedback while the notification system handles the backend delivery.
 
 ### Key Features Implemented:
+
 1. ✅ Toast notifications for all user actions
 2. ✅ Booking confirmation with congratulatory messages
 3. ✅ Email notifications with SMTP
@@ -205,6 +218,7 @@ All booking confirmations and waitlist notifications now include both email and 
 9. ✅ Waitlist management
 
 ### Next Steps for Frontend:
+
 1. Implement the Toast component
 2. Add notification history page
 3. Create admin dashboard UI

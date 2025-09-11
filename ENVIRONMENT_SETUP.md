@@ -9,18 +9,23 @@ This guide covers all the environment variables you need to manually update for 
 Copy `backend/.env.example` to `backend/.env` and update these values:
 
 #### JWT Secret (CRITICAL for security)
+
 ```env
 JWT_SECRET="your-super-secret-jwt-key-change-in-production-make-it-very-strong"
 ```
+
 **❗ Action Required:** Replace with a strong 64+ character random string. Use a password generator.
 
 #### VAPID Keys for Push Notifications
+
 ```env
 VAPID_PUBLIC_KEY="BDjDt9G6Z155-xfDDzHgMtNgXVas96Q25SoXYWurNhZhoAQzj2TdyUCxFbp8_4kc26WLw1p1lDiHCoyXmC4kaQw"
 VAPID_PRIVATE_KEY="zCxQMkIR8_kEi7Ya1zJNny_IH-i4YTqFD9U5jyW_x6g"
 VAPID_EMAIL="sahillsonii45@gmail.com"
 ```
-**❗ Action Required:** 
+
+**❗ Action Required:**
+
 1. Generate new keys: `cd backend && npx web-push generate-vapid-keys`
 2. Copy the output to your .env file
 3. Update VAPID_EMAIL with your actual email
@@ -28,12 +33,15 @@ VAPID_EMAIL="sahillsonii45@gmail.com"
 #### Email Configuration (Choose ONE option)
 
 **Option A: Gmail (Recommended for development)**
+
 ```env
 EMAIL_SERVICE="gmail"
 EMAIL_USER="your-email@gmail.com"
 EMAIL_APP_PASSWORD="your-gmail-app-password"
 ```
+
 **❗ Action Required:**
+
 1. Go to your Google Account settings
 2. Enable 2-Factor Authentication
 3. Go to "Security" → "App passwords"
@@ -41,17 +49,22 @@ EMAIL_APP_PASSWORD="your-gmail-app-password"
 5. Use the generated password (16 characters, not your regular password)
 
 **Option B: Ethereal (Testing - fake emails)**
+
 ```env
 EMAIL_SERVICE="ethereal"
 ```
+
 **❗ Action Required:** No changes needed. Emails will be viewable at https://ethereal.email/
 
 **Option C: SendGrid (Production)**
+
 ```env
 EMAIL_SERVICE="sendgrid"
 SENDGRID_API_KEY="SG.your-sendgrid-api-key"
 ```
+
 **❗ Action Required:**
+
 1. Sign up at https://sendgrid.com/
 2. Create an API key in Settings → API Keys
 3. Verify your sender identity
@@ -61,27 +74,34 @@ SENDGRID_API_KEY="SG.your-sendgrid-api-key"
 Copy `frontend/.env.example` to `frontend/.env.local` and update:
 
 #### API URL
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
+
 **❗ Action Required:** Update if your backend runs on a different port.
 
 #### VAPID Public Key
+
 ```env
 NEXT_PUBLIC_VAPID_KEY="BDjDt9G6Z155-xfDDzHgMtNgXVas96Q25SoXYWurNhZhoAQzj2TdyUCxFbp8_4kc26WLw1p1lDiHCoyXmC4kaQw"
 ```
+
 **❗ Action Required:** Copy the VAPID_PUBLIC_KEY from your backend .env file.
 
 ## 🛠️ Step-by-Step Setup
 
 ### Step 1: Generate VAPID Keys
+
 ```bash
 cd backend
 npx web-push generate-vapid-keys
 ```
+
 Copy the output for use in both backend and frontend.
 
 ### Step 2: Set up Gmail App Password
+
 1. Go to https://myaccount.google.com/
 2. Click "Security" in the left sidebar
 3. Under "Signing in to Google", click "App passwords"
@@ -90,11 +110,12 @@ Copy the output for use in both backend and frontend.
 6. Copy the 16-character password to your .env file
 
 ### Step 3: Update Backend .env
+
 ```env
 # Database (should work with Docker setup)
 DATABASE_URL="postgresql://evently_user:evently_pass@localhost:5433/evently_db?schema=public"
 
-# Redis (should work with Docker setup) 
+# Redis (should work with Docker setup)
 REDIS_URL="redis://localhost:6379"
 
 # JWT (CHANGE THIS)
@@ -123,6 +144,7 @@ ENABLE_WORKERS="true"
 ```
 
 ### Step 4: Update Frontend .env.local
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 NEXT_PUBLIC_WS_URL=ws://localhost:4000
@@ -134,6 +156,7 @@ NEXT_PUBLIC_APP_DESCRIPTION="Scalable Event Booking Platform"
 ## 🧪 Testing Your Configuration
 
 ### Test Backend Configuration
+
 ```bash
 # Test database connection
 curl http://localhost:4000/health
@@ -148,6 +171,7 @@ curl http://localhost:4000/api/notifications/vapid-key
 ```
 
 ### Test Frontend Configuration
+
 1. Visit http://localhost:3001
 2. Try registering a new account
 3. Check if you can see events
@@ -156,33 +180,43 @@ curl http://localhost:4000/api/notifications/vapid-key
 ## 🚨 Common Issues & Solutions
 
 ### Issue: "Database connection failed"
+
 **Solution:** Make sure PostgreSQL is running:
+
 ```bash
 cd infra
 docker-compose up -d
 ```
 
 ### Issue: "Redis connection failed"
+
 **Solution:** Make sure Redis is running:
+
 ```bash
 redis-cli ping
 # Should return: PONG
 ```
 
 ### Issue: "Email not sending"
+
 **Solutions:**
+
 1. **Gmail:** Verify you're using App Password, not regular password
 2. **2FA:** Enable 2-Factor Authentication on your Google account
 3. **Test:** Use Ethereal email service for testing: `EMAIL_SERVICE="ethereal"`
 
 ### Issue: "Push notifications not working"
+
 **Solutions:**
+
 1. **Generate keys:** `npx web-push generate-vapid-keys`
 2. **Match keys:** Ensure VAPID_PUBLIC_KEY in backend matches NEXT_PUBLIC_VAPID_KEY in frontend
 3. **HTTPS:** Push notifications require HTTPS in production (localhost works for development)
 
 ### Issue: "Frontend can't connect to backend"
+
 **Solutions:**
+
 1. **Check ports:** Backend on 4000, Frontend on 3001
 2. **CORS:** Verify CORS settings in backend allow frontend URL
 3. **Environment:** Check NEXT_PUBLIC_API_URL points to correct backend URL
@@ -226,6 +260,7 @@ npm run dev
 ## 📞 Support
 
 If you encounter issues:
+
 1. Check the troubleshooting section above
 2. Verify all environment variables are set correctly
 3. Make sure all services (PostgreSQL, Redis) are running

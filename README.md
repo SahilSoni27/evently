@@ -12,6 +12,7 @@
 ## 🌟 Features
 
 ### 🎯 Core Features
+
 - **Event Management**: Create, update, and manage events with detailed information
 - **Ticket Booking**: Secure booking system with concurrency handling
 - **Waitlist System**: Automatic queue management with position tracking
@@ -23,6 +24,7 @@
 - **Rate Limiting**: API protection and abuse prevention
 
 ### 🔧 Technical Highlights
+
 - **Concurrency Safe**: Handles thousands of simultaneous booking requests
 - **Scalable Architecture**: Built for high traffic and peak demand
 - **Real-time Updates**: WebSocket-based live updates
@@ -55,12 +57,14 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ and npm/pnpm
 - PostgreSQL 15+
 - Redis 7+
 - Git
 
 ### 1. Clone & Install
+
 ```bash
 git clone https://github.com/SahilSoni27/evently.git
 cd evently
@@ -69,12 +73,13 @@ cd evently
 cd backend
 npm install
 
-# Install frontend dependencies  
+# Install frontend dependencies
 cd ../frontend
 npm install
 ```
 
 ### 2. Database Setup
+
 ```bash
 # Start PostgreSQL and Redis (using Docker)
 cd ../infra
@@ -90,17 +95,19 @@ npm run db:seed
 ```
 
 ### 3. Environment Configuration
+
 ```bash
 # Backend environment
 cp backend/.env.example backend/.env
 # Edit the .env file with your database and service credentials
 
-# Frontend environment  
+# Frontend environment
 cp frontend/.env.example frontend/.env.local
 # Configure API endpoints and public keys
 ```
 
 ### 4. Start Development Servers
+
 ```bash
 # Terminal 1: Backend API
 cd backend
@@ -112,6 +119,7 @@ npm run dev
 ```
 
 ### 5. Verify Installation
+
 - Backend Health: http://localhost:4000/health
 - Frontend UI: http://localhost:3000
 - API Documentation: http://localhost:4000/api-docs
@@ -169,15 +177,18 @@ NEXT_PUBLIC_VAPID_KEY=your-vapid-public-key
 **⚠️ You need to manually update these values:**
 
 1. **Email Configuration**:
+
    - Set up Gmail App Password or your preferred email service
    - Update `EMAIL_USER` and `EMAIL_APP_PASSWORD` in backend/.env
 
 2. **VAPID Keys for Push Notifications**:
+
    - Generate new VAPID keys using: `npx web-push generate-vapid-keys`
    - Update `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_EMAIL`
    - Copy the public key to frontend/.env.local as `NEXT_PUBLIC_VAPID_KEY`
 
 3. **Database Credentials**:
+
    - If using external database, update `DATABASE_URL`
    - For local Docker setup, the provided URL should work
 
@@ -188,6 +199,7 @@ NEXT_PUBLIC_VAPID_KEY=your-vapid-public-key
 ## 📚 API Documentation
 
 ### Authentication Endpoints
+
 ```
 POST   /api/auth/register     # User registration
 POST   /api/auth/login        # User login
@@ -196,6 +208,7 @@ GET    /api/auth/me          # Get current user
 ```
 
 ### Event Management
+
 ```
 GET    /api/events           # List all events
 GET    /api/events/:id       # Get event details
@@ -206,6 +219,7 @@ GET    /api/events/stats     # Event statistics
 ```
 
 ### Booking System
+
 ```
 POST   /api/bookings         # Create booking
 GET    /api/bookings/my      # Get user bookings
@@ -214,6 +228,7 @@ DELETE /api/bookings/:id     # Cancel booking
 ```
 
 ### Waitlist Management
+
 ```
 POST   /api/waitlist/join/:eventId    # Join waitlist
 GET    /api/waitlist/user/:userId     # User waitlist status
@@ -221,6 +236,7 @@ GET    /api/waitlist/:eventId         # Event waitlist (Admin)
 ```
 
 ### Ticket Operations
+
 ```
 GET    /api/tickets/:bookingId/download  # Download PDF ticket
 GET    /api/tickets/:bookingId/qr        # Get QR code
@@ -228,6 +244,7 @@ GET    /api/tickets/:bookingId/details   # Ticket details
 ```
 
 ### Notifications
+
 ```
 POST   /api/notifications/subscribe     # Subscribe to push notifications
 GET    /api/notifications/user/:userId  # Get notification history
@@ -235,6 +252,7 @@ POST   /api/notifications/mark-read     # Mark notification as read
 ```
 
 ### Admin Analytics
+
 ```
 GET    /api/admin/dashboard/overview    # Dashboard overview
 GET    /api/admin/users                 # User management
@@ -242,6 +260,7 @@ GET    /api/admin/analytics             # Detailed analytics
 ```
 
 ### Search & Discovery
+
 ```
 GET    /api/search/events      # Search events
 GET    /api/search/suggestions # Search suggestions
@@ -250,24 +269,28 @@ GET    /api/search/suggestions # Search suggestions
 ## 🎯 Key Features Deep Dive
 
 ### 🔒 Concurrency & Race Conditions
+
 - **Database Transactions**: Ensures atomicity in booking operations
 - **Optimistic Locking**: Prevents double bookings with version checking
 - **Queue Processing**: BullMQ handles high-volume booking requests
 - **Rate Limiting**: Prevents abuse and ensures fair access
 
 ### 📊 Scalability Solutions
+
 - **Connection Pooling**: Efficient database connection management
 - **Redis Caching**: Fast data retrieval and session management
 - **Indexed Queries**: Optimized database performance
 - **Background Processing**: Non-blocking operations for better UX
 
 ### 🎫 Advanced Waitlist System
+
 - **Position Tracking**: Real-time waitlist position updates
 - **Automatic Promotion**: Smart algorithm for ticket availability
 - **Time-limited Booking**: Prevents indefinite holds on tickets
 - **Multi-channel Notifications**: Email + Push notifications
 
 ### 📱 Comprehensive Notifications
+
 - **Real-time Push**: Browser notifications even when app is closed
 - **Email Templates**: Rich HTML emails with QR codes
 - **Notification History**: In-app notification center
@@ -276,6 +299,7 @@ GET    /api/search/suggestions # Search suggestions
 ## 🏃‍♂️ Development Workflow
 
 ### Running Tests
+
 ```bash
 # Backend API tests
 cd backend
@@ -290,6 +314,7 @@ npm test
 ```
 
 ### Database Operations
+
 ```bash
 # Reset database
 npm run db:reset
@@ -302,6 +327,7 @@ npm run db:generate
 ```
 
 ### Production Deployment
+
 ```bash
 # Build frontend
 cd frontend
@@ -316,7 +342,7 @@ npm start
 ## 📈 Performance Benchmarks
 
 - **Concurrent Bookings**: Handles 1000+ simultaneous requests
-- **Database Queries**: Sub-100ms response times with proper indexing  
+- **Database Queries**: Sub-100ms response times with proper indexing
 - **API Response**: Average 50ms for standard operations
 - **Memory Usage**: ~200MB under normal load
 - **Queue Processing**: 100+ jobs/second processing capacity
@@ -345,6 +371,7 @@ npm start
 ## 📦 Deployment Options
 
 ### Docker Deployment
+
 ```bash
 # Using Docker Compose
 docker-compose up -d
@@ -354,6 +381,7 @@ docker-compose up -d --scale api=3
 ```
 
 ### Platform Deployments
+
 - **Railway**: One-click deployment with database
 - **Render**: Easy backend hosting with auto-deploy
 - **Vercel**: Frontend deployment with edge functions
@@ -365,6 +393,7 @@ docker-compose up -d --scale api=3
 ### Common Issues
 
 **Database Connection Error**
+
 ```bash
 # Check PostgreSQL status
 pg_isready -h localhost -p 5433
@@ -374,6 +403,7 @@ npm run db:reset
 ```
 
 **Redis Connection Failed**
+
 ```bash
 # Test Redis connection
 redis-cli ping
@@ -383,12 +413,14 @@ docker restart evently-redis
 ```
 
 **VAPID Key Errors**
+
 ```bash
 # Generate new VAPID keys
 npx web-push generate-vapid-keys
 ```
 
 **Email Service Issues**
+
 - Verify Gmail App Password is correct
 - Check email service configuration
 - Test with Ethereal email for development
@@ -419,10 +451,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ✅ **Real-time Features**: Live notifications and updates  
 ✅ **Production Ready**: Security, monitoring, and error handling  
 ✅ **Developer Experience**: Comprehensive docs and tooling  
-✅ **Mobile Optimized**: Responsive design for all devices  
+✅ **Mobile Optimized**: Responsive design for all devices
 
 ---
 
 **Built with ❤️ for scalable event management**
 
-*For detailed implementation guides, check the `/docs` folder.*
+_For detailed implementation guides, check the `/docs` folder._

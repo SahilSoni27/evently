@@ -5,6 +5,7 @@ This guide will help you set up the complete Evently system from scratch.
 ## 📋 Prerequisites
 
 Before starting, ensure you have:
+
 - **Node.js 18+** (Download from https://nodejs.org/)
 - **npm or pnpm** (comes with Node.js)
 - **PostgreSQL 15+** (Download from https://postgresql.org/)
@@ -14,12 +15,14 @@ Before starting, ensure you have:
 ## 🛠️ Quick Setup (Recommended)
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/SahilSoni27/evently.git
 cd evently
 ```
 
 ### 2. Database Setup (Docker - Easiest)
+
 ```bash
 # Start PostgreSQL and Redis using Docker
 cd infra
@@ -30,11 +33,13 @@ docker-compose up -d
 
 **Alternative: Manual Database Setup**
 If you prefer to install manually:
+
 - Install PostgreSQL and create a database named `evently_db`
 - Install Redis and start the service
 - Update the DATABASE_URL in your .env file accordingly
 
 ### 3. Backend Setup
+
 ```bash
 cd backend
 
@@ -58,6 +63,7 @@ npm run dev
 ```
 
 ### 4. Frontend Setup
+
 ```bash
 # Open a new terminal
 cd frontend
@@ -75,6 +81,7 @@ npm run dev
 ```
 
 ### 5. Verify Installation
+
 - Backend API: http://localhost:4000/health
 - Frontend UI: http://localhost:3001
 - API Documentation: http://localhost:4000/api-docs
@@ -86,14 +93,17 @@ npm run dev
 **REQUIRED MANUAL UPDATES:**
 
 #### 1. JWT Secret (CRITICAL for security)
+
 ```env
 JWT_SECRET="your-super-secret-jwt-key-change-in-production-make-it-very-strong"
 ```
+
 **How to generate:** Use a password generator to create a 64+ character random string.
 
 #### 2. Email Configuration (Choose ONE option)
 
 **Option A: Gmail (Recommended for development)**
+
 ```env
 EMAIL_SERVICE="gmail"
 EMAIL_USER="your-email@gmail.com"
@@ -101,6 +111,7 @@ EMAIL_APP_PASSWORD="your-gmail-app-password"
 ```
 
 **How to get Gmail App Password:**
+
 1. Go to Google Account settings
 2. Enable 2-Factor Authentication
 3. Go to "App passwords"
@@ -108,12 +119,15 @@ EMAIL_APP_PASSWORD="your-gmail-app-password"
 5. Use the generated password (not your regular password)
 
 **Option B: Ethereal (Testing only - creates fake emails)**
+
 ```env
 EMAIL_SERVICE="ethereal"
 ```
+
 No additional configuration needed. Check https://ethereal.email/ for sent emails.
 
 #### 3. Push Notifications (VAPID Keys)
+
 ```env
 VAPID_PUBLIC_KEY="your-vapid-public-key-here"
 VAPID_PRIVATE_KEY="your-vapid-private-key-here"
@@ -121,10 +135,12 @@ VAPID_EMAIL="your-email@example.com"
 ```
 
 **How to generate VAPID keys:**
+
 ```bash
 cd backend
 npx web-push generate-vapid-keys
 ```
+
 Copy the output to your .env file.
 
 ### 🔧 Frontend Environment (.env.local)
@@ -132,14 +148,17 @@ Copy the output to your .env file.
 **REQUIRED MANUAL UPDATES:**
 
 #### 1. API URL (should match backend port)
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
 
 #### 2. VAPID Public Key (copy from backend .env)
+
 ```env
 NEXT_PUBLIC_VAPID_KEY=your-vapid-public-key-here
 ```
+
 Use the same VAPID_PUBLIC_KEY from your backend .env file.
 
 ## 🐳 Docker Setup (Alternative)
@@ -158,32 +177,41 @@ docker-compose exec backend npm run db:seed
 ## 🧪 Testing the Setup
 
 ### 1. Backend Health Check
+
 ```bash
 curl http://localhost:4000/health
 ```
+
 Should return: `{"status":"success","message":"Evently API is running!"}`
 
 ### 2. Database Connection
+
 ```bash
 curl http://localhost:4000/api/events
 ```
+
 Should return a list of sample events.
 
 ### 3. Frontend Connection
+
 Visit http://localhost:3001 - you should see the Evently homepage.
 
 ### 4. API Documentation
+
 Visit http://localhost:4000/api-docs - you should see Swagger UI.
 
 ## 🚨 Troubleshooting
 
 ### Backend won't start
+
 1. **Database connection failed:**
+
    - Check if PostgreSQL is running: `pg_isready -h localhost -p 5433`
    - Verify DATABASE_URL in .env file
    - Run: `docker-compose up -d` to start Docker services
 
 2. **Redis connection failed:**
+
    - Check if Redis is running: `redis-cli ping`
    - Should return: `PONG`
 
@@ -196,7 +224,9 @@ Visit http://localhost:4000/api-docs - you should see Swagger UI.
    ```
 
 ### Frontend won't start
+
 1. **API connection failed:**
+
    - Verify NEXT_PUBLIC_API_URL in .env.local
    - Make sure backend is running on port 4000
 
@@ -208,7 +238,9 @@ Visit http://localhost:4000/api-docs - you should see Swagger UI.
    ```
 
 ### Email notifications not working
+
 1. **Gmail setup:**
+
    - Verify 2FA is enabled on your Google account
    - Use App Password, not regular password
    - Check EMAIL_USER and EMAIL_APP_PASSWORD in .env
@@ -220,11 +252,14 @@ Visit http://localhost:4000/api-docs - you should see Swagger UI.
    ```
 
 ### Push notifications not working
+
 1. **VAPID keys missing:**
+
    ```bash
    cd backend
    npx web-push generate-vapid-keys
    ```
+
    Update both backend .env and frontend .env.local
 
 2. **HTTPS required:**
@@ -234,6 +269,7 @@ Visit http://localhost:4000/api-docs - you should see Swagger UI.
 ## 📊 Production Deployment
 
 ### Backend Deployment (Railway/Render/Heroku)
+
 1. Set environment variables in your hosting platform
 2. Set NODE_ENV=production
 3. Use production database URLs
@@ -241,11 +277,13 @@ Visit http://localhost:4000/api-docs - you should see Swagger UI.
 5. Use SendGrid or Mailgun for email in production
 
 ### Frontend Deployment (Vercel/Netlify)
+
 1. Connect your GitHub repository
 2. Set NEXT_PUBLIC_API_URL to your production backend URL
 3. Set other environment variables
 
 ### Database (Production)
+
 - Use managed PostgreSQL (Railway, Render, AWS RDS, etc.)
 - Use managed Redis (Railway, Render, AWS ElastiCache, etc.)
 - Run migrations in production: `npx prisma migrate deploy`
