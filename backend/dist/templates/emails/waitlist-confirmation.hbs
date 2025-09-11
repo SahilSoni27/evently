@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're on the Waitlist!</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .header { background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%); padding: 40px 20px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; }
+        .content { padding: 40px 30px; }
+        .position-card { background: linear-gradient(135deg, #ede9fe 0%, #e0f2fe 100%); border-radius: 12px; padding: 40px; margin: 25px 0; text-align: center; border: 2px solid #8b5cf6; }
+        .position-number { font-size: 64px; font-weight: 900; color: #7c3aed; margin: 0; }
+        .position-text { color: #7c3aed; font-size: 20px; font-weight: 600; margin: 10px 0; }
+        .event-details { background: #f8fafc; border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .event-name { font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 20px; }
+        .detail { display: flex; align-items: center; margin: 15px 0; }
+        .detail-icon { margin-right: 12px; font-size: 18px; }
+        .detail-text { color: #4b5563; font-weight: 500; }
+        .info-box { background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 25px; margin: 30px 0; }
+        .footer { background: #f9fafb; padding: 30px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 You're In Line!</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">We've got you covered, {{userName}}!</p>
+        </div>
+        
+        <div class="content">
+            <div style="text-align: center; margin: 30px 0;">
+                <h2 style="color: #1f2937; margin-bottom: 10px;">Great news! You're on the waitlist</h2>
+                <p style="color: #6b7280; font-size: 16px;">We'll notify you immediately if a spot opens up.</p>
+            </div>
+
+            <div class="position-card">
+                <div class="position-number">#{{position}}</div>
+                <div class="position-text">Your position in line</div>
+                <p style="color: #7c3aed; margin: 15px 0 0 0; font-size: 14px;">
+                    {{#if (eq position 1)}}
+                        You're next! 🥇
+                    {{else if (lte position 5)}}
+                        You're very close to getting in! 🔥
+                    {{else if (lte position 20)}}
+                        You have a great chance! ⭐
+                    {{else}}
+                        Hang tight, spots open up regularly! 💪
+                    {{/if}}
+                </p>
+            </div>
+
+            <div class="event-details">
+                <div class="event-name">{{eventName}}</div>
+                
+                <div class="detail">
+                    <span class="detail-icon">📍</span>
+                    <span class="detail-text">{{venue}}</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-icon">📅</span>
+                    <span class="detail-text">{{eventDate}}</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-icon">👥</span>
+                    <span class="detail-text">{{position}} people ahead of you</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4 style="color: #0369a1; margin-top: 0;">💡 How the waitlist works</h4>
+                <ul style="color: #0369a1; margin: 0; padding-left: 20px; line-height: 1.6;">
+                    <li>When someone cancels, you'll move up automatically</li>
+                    <li>If you reach #1 and a spot opens, you'll get an instant email</li>
+                    <li>You'll have 24 hours to claim your ticket</li>
+                    <li>Your position updates in real-time</li>
+                </ul>
+            </div>
+
+            <div style="background: #fefce8; border: 1px solid #eab308; border-radius: 8px; padding: 20px; margin: 30px 0;">
+                <h4 style="color: #a16207; margin-top: 0;">⚡ Stay Ready!</h4>
+                <p style="color: #a16207; margin: 0;">
+                    Keep your notifications on! When your turn comes, you'll need to act fast to secure your spot.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Questions about the waitlist?</strong> Contact us at support@evently.com</p>
+            <p>© 2025 Evently. All rights reserved.</p>
+            <p style="font-size: 12px; margin-top: 20px;">
+                You can leave the waitlist anytime by clicking the unsubscribe link in your account.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

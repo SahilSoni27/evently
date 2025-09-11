@@ -4,6 +4,8 @@ import { createError, asyncHandler } from '../middleware/errorHandler';
 import type { CreateBookingInput } from '../validation/schemas';
 import { UserRole } from '../types';
 import { withOptimisticLocking, generateIdempotencyKey } from '../utils/retry';
+import AnalyticsCache from '../utils/analyticsCache';
+import JobScheduler from '../services/jobQueue';
 
 // POST /api/bookings - Create a new booking with optimistic locking
 export const createBooking = asyncHandler(async (req: any, res: Response) => {
@@ -181,11 +183,91 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
   const statusCode = result.isNew ? 201 : 200;
   const message = result.isNew ? 'Booking created successfully' : 'Booking already exists';
 
-  res.status(statusCode).json({
+  // Invalidate analytics cache after successful booking creation
+  if (result.isNew) {
+    // Fire and forget - don't wait for cache invalidation
+    AnalyticsCache.invalidateEventCache(bookingData.eventId).catch(err => 
+      console.error('Failed to invalidate analytics cache:', err)
+    );
+
+    // Schedule background jobs
+    try {
+      // Send booking confirmation email
+      await JobScheduler.scheduleBookingConfirmation({
+        type: 'booking_confirmation',
+        to: result.booking.user.email,
+        eventId: result.booking.event.id,
+        bookingId: result.booking.id,
+        eventName: result.booking.event.name,
+        userName: result.booking.user.name || 'Guest',
+        eventStartTime: result.booking.event.startTime,
+        venue: result.booking.event.venue,
+      });
+
+      // Schedule event reminder (24 hours before event)
+      const reminderTime = new Date(result.booking.event.startTime);
+      reminderTime.setHours(reminderTime.getHours() - 24);
+      
+      if (reminderTime > new Date()) {
+        await JobScheduler.scheduleEventReminder({
+          type: 'event_reminder',
+          to: result.booking.user.email,
+          eventId: result.booking.event.id,
+          eventName: result.booking.event.name,
+          userName: result.booking.user.name || 'Guest',
+          eventStartTime: result.booking.event.startTime,
+          venue: result.booking.event.venue,
+          reminderTime,
+        });
+      }
+
+      // Update event analytics
+      await JobScheduler.scheduleAnalyticsUpdate({
+        type: 'update_event_stats',
+        eventId: result.booking.event.id,
+      });
+
+      // Generate QR code and PDF ticket data for the booking
+      // This is done in background so we don't slow down the booking response
+      setTimeout(() => {
+        import('../services/ticketService').then(({ TicketService }) => {
+          TicketService.generateQRCode(result.booking.id).catch(err => 
+            console.error('Failed to generate QR code for booking:', result.booking.id, err)
+          );
+        });
+      }, 100);
+
+      // Send push notification for booking confirmation
+      setTimeout(() => {
+        import('../services/pushNotificationService').then(({ default: PushService }) => {
+          PushService.sendBookingConfirmation(result.booking.id).catch(err => 
+            console.error('Failed to send booking confirmation push notification:', result.booking.id, err)
+          );
+        });
+      }, 200);
+    } catch (jobError) {
+      console.error('Failed to schedule background jobs:', jobError);
+      // Don't fail the booking creation if job scheduling fails
+    }
+  }
+
+  // Add ticket links to successful booking responses
+  const response: any = {
     status: 'success',
     message,
-    data: { booking: result.booking }
-  });
+    data: { 
+      booking: result.booking,
+      ...(result.isNew && {
+        ticketLinks: {
+          download: `/api/tickets/${result.booking.id}/download`,
+          qrCode: `/api/tickets/${result.booking.id}/qr`,
+          details: `/api/tickets/${result.booking.id}/details`
+        }
+      })
+    }
+  };
+
+  res.status(statusCode).json(response);
 });
 
 // GET /api/bookings/user/:userId - Get user bookings

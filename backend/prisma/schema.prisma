@@ -37,16 +37,24 @@ enum BookingStatus {
   PENDING
 }
 
+enum WaitlistStatus {
+  ACTIVE
+  NOTIFIED
+  EXPIRED
+}
+
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
-  password  String
-  role      UserRole  @default(USER)
-  bookings  Booking[]
-  payments  Payment[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String?
+  password         String
+  role             UserRole          @default(USER)
+  bookings         Booking[]
+  payments         Payment[]
+  waitlist         Waitlist[]
+  pushSubscription PushSubscription?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@map("users")
 }
@@ -66,6 +74,7 @@ model Event {
   imageUrl          String? // Event image
   version           Int           @default(0) // For optimistic locking
   bookings          Booking[]
+  waitlist          Waitlist[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -94,6 +103,25 @@ model Booking {
   @@index([eventId])
   @@index([status])
   @@map("bookings")
+}
+
+model Waitlist {
+  id         String         @id @default(cuid())
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  event      Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId    String
+  position   Int // Position in the waitlist queue
+  status     WaitlistStatus @default(ACTIVE)
+  notifiedAt DateTime? // When user was notified about available spot
+  expiresAt  DateTime? // When the notification expires
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([userId, eventId]) // A user can only be on waitlist once per event
+  @@index([eventId, position])
+  @@index([status])
+  @@map("waitlist")
 }
 
 model Payment {
@@ -152,4 +180,17 @@ enum RefundStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique // One subscription per user
+  endpoint  String
+  p256dhKey String
+  authKey   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("push_subscriptions")
 }

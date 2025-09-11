@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Available!</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 32px; font-weight: 900; }
+        .content { padding: 40px 30px; }
+        .celebration { text-align: center; margin: 30px 0; }
+        .celebration-emoji { font-size: 80px; margin: 20px 0; }
+        .urgent-card { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 3px solid #f59e0b; border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .countdown { font-size: 24px; font-weight: 900; color: #92400e; margin: 15px 0; }
+        .event-details { background: #f0fdf4; border-radius: 12px; padding: 25px; margin: 25px 0; border: 2px solid #10b981; }
+        .event-name { font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 20px; }
+        .detail { display: flex; align-items: center; margin: 15px 0; }
+        .detail-icon { margin-right: 12px; font-size: 18px; }
+        .detail-text { color: #15803d; font-weight: 600; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px 40px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 18px; margin: 20px 0; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+        .footer { background: #f9fafb; padding: 30px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 YOU'RE IN!</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px; font-weight: 600;">A ticket is now available for you!</p>
+        </div>
+        
+        <div class="content">
+            <div class="celebration">
+                <div class="celebration-emoji">🎊🎫🎊</div>
+                <h2 style="color: #10b981; margin: 0; font-size: 28px;">Congratulations, {{userName}}!</h2>
+                <p style="color: #6b7280; font-size: 18px; margin: 15px 0;">Your patience paid off - you made it off the waitlist!</p>
+            </div>
+
+            <div class="urgent-card">
+                <h3 style="color: #92400e; margin-top: 0; font-size: 20px;">⏰ Act Fast!</h3>
+                <div class="countdown">{{deadlineHours}} hours remaining</div>
+                <p style="color: #92400e; margin: 0; font-weight: 600;">
+                    This exclusive opportunity expires soon. Secure your spot now!
+                </p>
+            </div>
+
+            <div class="event-details">
+                <div class="event-name">{{eventName}}</div>
+                
+                <div class="detail">
+                    <span class="detail-icon">📍</span>
+                    <span class="detail-text">{{venue}}</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-icon">📅</span>
+                    <span class="detail-text">{{eventDate}}</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-icon">✨</span>
+                    <span class="detail-text">Reserved just for you!</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="#" class="cta-button">CLAIM YOUR TICKET NOW</a>
+                <p style="color: #6b7280; font-size: 14px; margin: 15px 0;">
+                    Click above to complete your booking within {{deadlineHours}} hours
+                </p>
+            </div>
+
+            <div style="background: #fef2f2; border: 2px solid #fca5a5; border-radius: 8px; padding: 25px; margin: 30px 0;">
+                <h4 style="color: #dc2626; margin-top: 0;">🚨 Important Notice</h4>
+                <ul style="color: #dc2626; margin: 0; padding-left: 20px; line-height: 1.6;">
+                    <li><strong>Time limit:</strong> You have {{deadlineHours}} hours to claim this ticket</li>
+                    <li><strong>Payment required:</strong> Complete payment to secure your spot</li>
+                    <li><strong>No holds:</strong> If you don't claim it, the next person gets it</li>
+                    <li><strong>Final chance:</strong> This is your exclusive opportunity</li>
+                </ul>
+            </div>
+
+            <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
+                <p style="color: #0369a1; margin: 0; font-weight: 600;">
+                    🎯 You were #1 on the waitlist - this ticket is reserved exclusively for you!
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Need help claiming your ticket?</strong> Contact us immediately at support@evently.com</p>
+            <p>© 2025 Evently. All rights reserved.</p>
+            <p style="font-size: 12px; margin-top: 20px;">
+                This opportunity expires in {{deadlineHours}} hours. Don't miss out!
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -68,25 +68,25 @@ function AdminAnalyticsPage() {
       
       // Test direct fetch to analytics endpoint
       try {
-        const directTest = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/admin/analytics/overview`, {
+        const directTest = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/admin/dashboard/overview`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
-        console.log('Direct analytics fetch status:', directTest.status);
+        console.log('Direct dashboard fetch status:', directTest.status);
         if (!directTest.ok) {
           const errorText = await directTest.text();
-          console.error('Direct analytics fetch error:', errorText);
+          console.error('Direct dashboard fetch error:', errorText);
         } else {
           const result = await directTest.json();
-          console.log('Direct analytics fetch success:', result);
+          console.log('Direct dashboard fetch success:', result);
         }
       } catch (directError) {
-        console.error('Direct analytics fetch failed:', directError);
+        console.error('Direct dashboard fetch failed:', directError);
       }
       
-      console.log('Making analytics API calls...');
+      console.log('Making dashboard API calls...');
       
       const [overview, events, bookings, users, revenue] = await Promise.all([
         apiClient.getAnalyticsOverview().catch(err => {

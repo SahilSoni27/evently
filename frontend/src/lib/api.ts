@@ -167,9 +167,9 @@ class ApiClient {
     });
   }
 
-  // Admin Analytics
+  // Admin Dashboard Data
   async getAnalyticsOverview() {
-    return this.request('/api/admin/analytics/overview');
+    return this.request('/api/admin/dashboard/overview');
   }
 
   async getEventAnalytics(timeframe = '30d', limit = 10) {
@@ -177,22 +177,22 @@ class ApiClient {
       timeframe,
       limit: limit.toString(),
     });
-    return this.request(`/api/admin/analytics/events?${params}`);
+    return this.request(`/api/admin/dashboard/events?${params}`);
   }
 
   async getBookingAnalytics(timeframe = '30d') {
     const params = new URLSearchParams({ timeframe });
-    return this.request(`/api/admin/analytics/bookings?${params}`);
+    return this.request(`/api/admin/dashboard/bookings?${params}`);
   }
 
   async getUserAnalytics(timeframe = '30d') {
     const params = new URLSearchParams({ timeframe });
-    return this.request(`/api/admin/analytics/users?${params}`);
+    return this.request(`/api/admin/dashboard/users?${params}`);
   }
 
   async getRevenueAnalytics(timeframe = '30d') {
     const params = new URLSearchParams({ timeframe });
-    return this.request(`/api/admin/analytics/revenue?${params}`);
+    return this.request(`/api/admin/dashboard/revenue?${params}`);
   }
 }
 

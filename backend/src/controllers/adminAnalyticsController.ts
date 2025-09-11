@@ -1,129 +1,127 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/errorHandler';
+import AnalyticsCache from '../utils/analyticsCache';
 
 // GET /api/admin/analytics/overview - Get overview statistics
 export const getOverviewStats = asyncHandler(async (req: Request, res: Response) => {
-  try {
-    const [
-      totalEvents,
-      totalBookings,
-      totalUsers,
-      activeEvents,
-      upcomingEvents
-    ] = await Promise.all([
-      // Total events created
-      prisma.event.count(),
-      
-      // Total bookings (excluding cancelled)
-      prisma.booking.count(),
-      
-      // Total registered users
-      prisma.user.count(),
-      
-      // Active events (happening now)
-      prisma.event.count({
-        where: {
-          startTime: { lte: new Date() },
-          endTime: { gte: new Date() }
-        } as any
-      }),
-      
-      // Upcoming events
-      prisma.event.count({
-        where: {
-          startTime: { gt: new Date() }
-        } as any
-      })
-    ]);
+  const { data: stats, cached } = await AnalyticsCache.getOrSet(
+    'overview',
+    async () => {
+      const [
+        totalEvents,
+        totalBookings,
+        totalUsers,
+        activeEvents,
+        upcomingEvents
+      ] = await Promise.all([
+        // Total events created
+        prisma.event.count(),
+        
+        // Total bookings (excluding cancelled)
+        prisma.booking.count(),
+        
+        // Total registered users
+        prisma.user.count(),
+        
+        // Active events (happening now)
+        prisma.event.count({
+          where: {
+            startTime: { lte: new Date() },
+            endTime: { gte: new Date() }
+          } as any
+        }),
+        
+        // Upcoming events
+        prisma.event.count({
+          where: {
+            startTime: { gt: new Date() }
+          } as any
+        })
+      ]);
 
-    const stats = {
-      totalEvents,
-      totalBookings,
-      totalUsers,
-      activeEvents,
-      upcomingEvents
-    };
+      return {
+        totalEvents,
+        totalBookings,
+        totalUsers,
+        activeEvents,
+        upcomingEvents
+      };
+    },
+    { ttl: 300 } // 5 minutes
+  );
 
-    res.json({
-      status: 'success',
-      data: { stats }
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to fetch overview statistics'
-    });
-  }
+  res.json({
+    status: 'success',
+    data: { stats },
+    cached
+  });
 });
 
 // GET /api/admin/analytics/events - Get event analytics
 export const getEventAnalytics = asyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { timeframe = '30d', limit = '10' } = req.query;
-    
-    // Calculate date range
-    const daysBack = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - daysBack);
+  const { timeframe = '30d', limit = '10' } = req.query;
+  
+  const cacheKey = `events:${timeframe}:${limit}`;
+  
+  const { data: result, cached } = await AnalyticsCache.getOrSet(
+    cacheKey,
+    async () => {
+      // Calculate date range
+      const daysBack = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysBack);
 
-    // Get events with booking counts
-    const events = await prisma.event.findMany({
-      select: {
-        id: true,
-        name: true,
-        venue: true,
-        startTime: true,
-        capacity: true,
-        price: true
-      } as any,
-      where: {
-        createdAt: { gte: startDate }
-      } as any,
-      take: parseInt(limit as string),
-      orderBy: {
-        createdAt: 'desc'
-      } as any
-    });
+      // Get events with booking counts
+      const events = await prisma.event.findMany({
+        select: {
+          id: true,
+          name: true,
+          venue: true,
+          startTime: true,
+          capacity: true,
+          price: true,
+          _count: {
+            select: {
+              bookings: true
+            }
+          }
+        },
+        where: {
+          createdAt: { gte: startDate }
+        },
+        take: parseInt(limit as string),
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
 
-    // Get booking counts for each event
-    const eventIds = events.map(event => event.id);
-    const bookingCounts = await Promise.all(
-      eventIds.map(async (eventId) => {
-        const count = await prisma.booking.count({
-          where: { eventId }
-        });
-        return { eventId, count };
-      })
-    );
+      const eventAnalytics = events.map(event => {
+        return {
+          id: event.id,
+          name: event.name,
+          venue: event.venue,
+          startTime: event.startTime,
+          price: event.price,
+          capacity: event.capacity,
+          totalBookings: event._count.bookings
+        };
+      });
 
-    const eventAnalytics = events.map(event => {
-      const bookingData = bookingCounts.find(bc => bc.eventId === event.id);
       return {
-        id: event.id,
-        name: event.name,
-        venue: event.venue,
-        startTime: (event as any).startTime,
-        price: (event as any).price,
-        capacity: event.capacity,
-        totalBookings: bookingData?.count || 0
-      };
-    });
-
-    res.json({
-      status: 'success',
-      data: { 
         events: eventAnalytics,
         timeframe,
         totalEvents: eventAnalytics.length
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to fetch event analytics'
-    });
-  }
+      };
+    },
+    { ttl: 600 } // 10 minutes
+  );
+
+  res.json({
+    status: 'success',
+    data: result,
+    cached
+  });
 });
 
 // GET /api/admin/analytics/bookings - Get booking analytics
