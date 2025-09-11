@@ -19,7 +19,7 @@
   status = 200
   force = true
 
-# SPA fallback for client-side routing
+# SPA fallback for client-side routing (should be last)
 [[redirects]]
   from = "/*"
   to = "/index.html"
