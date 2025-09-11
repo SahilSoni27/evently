@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // For Netlify deployment
+  // For Netlify deployment with server-side rendering
   trailingSlash: true,
   images: {
     unoptimized: true

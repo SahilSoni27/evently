@@ -8,18 +8,22 @@
   NPM_FLAGS = "--prefix=/dev/null"
   CI = "false"
 
-# Redirect all requests to index.html for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Enable Next.js runtime for Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # API redirects (redirect to your backend service)
 [[redirects]]
   from = "/api/*"
-  to = "https://evenly-backend.onrender.com/api/:splat"
+  to = "https://evently-p02p.onrender.com/api/:splat"
   status = 200
   force = true
+
+# SPA fallback for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [dev]
   command = "pnpm run dev"
