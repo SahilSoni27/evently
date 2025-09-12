@@ -117,7 +117,7 @@ export default function CongratulationsPopup({
                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
                   🎉 Congratulations!
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-800 mb-6">
                   {bookingId === 'PROCESSING' ? 
                     'Your seat booking is being processed! You will receive a confirmation shortly.' :
                     'Your booking has been confirmed successfully!'

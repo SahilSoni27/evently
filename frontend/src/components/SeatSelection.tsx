@@ -123,7 +123,7 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-lg font-semibold mb-2">Select Your Seats</h3>
-        <p className="text-gray-600">
+        <p className="text-gray-800">
           Selected: {selectedSeats.length} of {maxSeats} seats
         </p>
       </div>
@@ -175,7 +175,7 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
               }, {} as Record<string, Seat[]>)
             ).map(([row, rowSeats]) => (
               <div key={row} className="flex items-center justify-center mb-2">
-                <div className="w-8 text-center font-medium text-gray-600 mr-4">
+                <div className="w-8 text-center font-medium text-gray-800 mr-4">
                   {row}
                 </div>
                 <div className="flex space-x-1">

@@ -43,7 +43,7 @@ export default function EventDetailPage() {
       SPORTS: 'bg-orange-100 text-orange-800',
       EDUCATION: 'bg-indigo-100 text-indigo-800',
       CULTURAL: 'bg-red-100 text-red-800',
-      OTHER: 'bg-gray-100 text-gray-600'
+      OTHER: 'bg-gray-100 text-gray-800'
     };
     return colors[category as keyof typeof colors] || colors.OTHER;
   };

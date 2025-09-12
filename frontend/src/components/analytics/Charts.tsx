@@ -8,7 +8,7 @@ export function SimpleBarChart({ data, title, className = '' }: SimpleBarChartPr
   if (!data || data.length === 0) {
     return (
       <div className={`p-4 ${className}`}>
-        <p className="text-gray-500 text-center">No data available</p>
+        <p className="text-gray-800 text-center">No data available</p>
       </div>
     );
   }
@@ -23,7 +23,7 @@ export function SimpleBarChart({ data, title, className = '' }: SimpleBarChartPr
       <div className="space-y-3">
         {data.map((item, index) => (
           <div key={index} className="flex items-center space-x-3">
-            <div className="w-20 text-sm text-gray-600 truncate">{item.label}</div>
+            <div className="w-20 text-sm text-gray-800 truncate">{item.label}</div>
             <div className="flex-1">
               <div className="bg-gray-200 rounded-full h-4 relative overflow-hidden">
                 <div 
@@ -60,7 +60,7 @@ export function SimpleLineChart({ data, title, className = '', color = 'blue' }:
   if (!data || data.length === 0) {
     return (
       <div className={`p-4 ${className}`}>
-        <p className="text-gray-500 text-center">No data available</p>
+        <p className="text-gray-800 text-center">No data available</p>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export function SimpleLineChart({ data, title, className = '', color = 'blue' }:
             );
           })}
         </svg>
-        <div className="flex justify-between mt-2 text-xs text-gray-600">
+        <div className="flex justify-between mt-2 text-xs text-gray-800">
           {data.map((item, index) => (
             <span key={index} className="truncate" style={{ maxWidth: `${100 / data.length}%` }}>
               {item.label}
@@ -139,7 +139,7 @@ export function MetricCard({ title, value, change, icon, color = 'blue' }: Metri
     <div className="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className="text-sm font-medium text-gray-800 mb-1">{title}</p>
           <p className="text-2xl font-bold text-gray-900">{value}</p>
           {change && (
             <div className="mt-2 flex items-center">
@@ -148,7 +148,7 @@ export function MetricCard({ title, value, change, icon, color = 'blue' }: Metri
               }`}>
                 {change.positive !== false ? '+' : ''}{change.value}%
               </span>
-              <span className="text-sm text-gray-500 ml-1">{change.label}</span>
+              <span className="text-sm text-gray-700 ml-1">{change.label}</span>
             </div>
           )}
         </div>

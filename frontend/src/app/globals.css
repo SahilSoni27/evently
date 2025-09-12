@@ -18,6 +18,22 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Improve default placeholder text contrast */
+::placeholder {
+  color: #4b5563; /* gray-600 - darker than default gray-500 */
+  opacity: 1;
+}
+
+/* Ensure form inputs have good contrast */
+input, select, textarea {
+  color: #111827; /* gray-900 */
+}
+
+/* Better contrast for secondary text */
+.text-muted {
+  color: #374151; /* gray-700 instead of gray-500 */
+}
+
 /* Line clamp utilities */
 .line-clamp-1 {
   display: -webkit-box;
