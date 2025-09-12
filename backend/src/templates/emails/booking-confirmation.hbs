@@ -64,7 +64,15 @@
           </div>
 
           <div class="qr-placeholder">
-            <span>QR Code</span>
+            {{#if qrCodeData}}
+              <img
+                src="{{qrCodeData}}"
+                alt="QR Code"
+                style="width: 100px; height: 100px; display: block; margin: 0 auto;"
+              />
+            {{else}}
+              <span>QR Code</span>
+            {{/if}}
           </div>
         </div>
 

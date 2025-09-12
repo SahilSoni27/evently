@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/Toast';
 import { Event } from '@/types';
 import { Navbar } from '@/components/Navbar';
+import SeatSelection from '@/components/SeatSelection';
+import CongratulationsPopup from '@/components/CongratulationsPopup';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, MapPin, Users, ArrowLeft, CreditCard, Info, Tag } from 'lucide-react';
@@ -14,12 +17,18 @@ export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [showCongratulations, setShowCongratulations] = useState(false);
+  const [lastBooking, setLastBooking] = useState<any>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [seatRefreshTrigger, setSeatRefreshTrigger] = useState(0);
 
   const eventId = params.id as string;
 
@@ -34,7 +43,7 @@ export default function EventDetailPage() {
       SPORTS: 'bg-orange-100 text-orange-800',
       EDUCATION: 'bg-indigo-100 text-indigo-800',
       CULTURAL: 'bg-red-100 text-red-800',
-      OTHER: 'bg-gray-100 text-gray-600'
+      OTHER: 'bg-gray-100 text-gray-800'
     };
     return colors[category as keyof typeof colors] || colors.OTHER;
   };
@@ -69,14 +78,26 @@ export default function EventDetailPage() {
       return;
     }
 
-    if (!event || quantity <= 0) {
-      setError('Invalid booking details');
+    if (!event) {
+      setError('Event not found');
       return;
     }
 
-    if (quantity > event.availableCapacity) {
-      setError(`Only ${event.availableCapacity} tickets available`);
-      return;
+    // Validate booking based on event type
+    if (event.seatLevelBooking) {
+      if (selectedSeats.length === 0) {
+        setError('Please select at least one seat');
+        return;
+      }
+    } else {
+      if (quantity <= 0) {
+        setError('Invalid quantity');
+        return;
+      }
+      if (quantity > event.availableCapacity) {
+        setError(`Only ${event.availableCapacity} tickets available`);
+        return;
+      }
     }
 
     setBookingLoading(true);
@@ -84,34 +105,80 @@ export default function EventDetailPage() {
     setSuccess('');
 
     try {
-      const bookingData = {
-        eventId: event.id,
-        quantity,
-        totalPrice: (parseFloat(event.price) * quantity).toFixed(2)
-      };
-
-      const response = await apiClient.createBooking(bookingData);
+      let response;
+      
+      if (event.seatLevelBooking && selectedSeats.length > 0) {
+        // Book specific seats
+        response = await apiClient.bookSeats({
+          eventId: event.id,
+          seatIds: selectedSeats,
+          idempotencyKey: `${user?.id}-${event.id}-${Date.now()}`
+        });
+      } else {
+        // Regular booking
+        const bookingData = {
+          eventId: event.id,
+          quantity,
+          totalPrice: calculateTotalPrice()
+        };
+        response = await apiClient.createBooking(bookingData);
+      }
       
       if (response) {
-        setSuccess(`Successfully booked ${quantity} ticket(s)!`);
+        const responseData = (response as any)?.data || response;
+        
+        // Handle different response structures
+        let bookingId;
+        if (event.seatLevelBooking) {
+          // Seat booking returns jobId
+          bookingId = responseData.jobId || 'PROCESSING';
+        } else {
+          // Regular booking returns booking object
+          const booking = responseData.booking || responseData;
+          bookingId = booking.id;
+        }
+        
+        setLastBooking({
+          id: bookingId,
+          eventName: event.name,
+          ticketCount: event.seatLevelBooking ? selectedSeats.length : quantity,
+          totalPrice: parseFloat(calculateTotalPrice())
+        });
+        
+        // Show success toast
+        showToast(`Successfully booked ${event.seatLevelBooking ? selectedSeats.length : quantity} ticket(s)!`, 'success');
+        
+        // Show congratulations popup
+        setShowCongratulations(true);
+        
+        // Reset form
         setQuantity(1);
+        setSelectedSeats([]);
+        setTotalPrice(0);
         
         // Refresh event data to update available capacity
         const updatedResponse = await apiClient.getEvent(eventId);
         const updatedEvent = (updatedResponse as any)?.data?.event || updatedResponse;
         setEvent(updatedEvent);
-
-        // Redirect to dashboard after a short delay
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
+        
+        // Trigger seat refresh for seat-level booking events
+        if (event.seatLevelBooking) {
+          setSeatRefreshTrigger(prev => prev + 1);
+        }
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to create booking');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create booking';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setBookingLoading(false);
     }
   };
+
+  const handleSeatsSelected = useCallback((seatIds: string[], price: number) => {
+    setSelectedSeats(seatIds);
+    setTotalPrice(price);
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -124,7 +191,14 @@ export default function EventDetailPage() {
     });
   };
 
-  const totalPrice = event ? (parseFloat(event.price) * quantity).toFixed(2) : '0.00';
+  // Calculate total price based on event type
+  const calculateTotalPrice = () => {
+    if (!event) return '0.00';
+    if (event.seatLevelBooking && selectedSeats.length > 0) {
+      return totalPrice.toFixed(2);
+    }
+    return (parseFloat(event.price) * quantity).toFixed(2);
+  };
 
   if (loading) {
     return (
@@ -223,20 +297,20 @@ export default function EventDetailPage() {
                 </div>
                 
                 <div className="space-y-3 mb-6">
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-black">
                     <Calendar className="h-5 w-5 mr-3" />
                     <span className="text-lg">{formatDate(event.startTime)}</span>
                   </div>
                   {event.endTime && (
-                    <div className="flex items-center text-gray-600 ml-8">
+                    <div className="flex items-center text-black ml-8">
                       <span className="text-sm">Ends: {formatDate(event.endTime)}</span>
                     </div>
                   )}
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-black">
                     <MapPin className="h-5 w-5 mr-3" />
                     <span className="text-lg">{event.venue}</span>
                   </div>
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-black">
                     <Users className="h-5 w-5 mr-3" />
                     <span className="text-lg">
                       {event.availableCapacity} of {event.capacity} spots available
@@ -296,56 +370,105 @@ export default function EventDetailPage() {
               )}
 
               <div className="bg-gray-50 rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Tickets
-                    </label>
-                    <select
-                      id="quantity"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={bookingLoading}
-                    >
-                      {Array.from({ length: Math.min(event.availableCapacity, 10) }, (_, i) => i + 1).map((num) => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? 'ticket' : 'tickets'}
-                        </option>
-                      ))}
-                    </select>
+                {/* Seat Selection for seat-level booking events */}
+                {event.seatLevelBooking ? (
+                  <div className="space-y-6">
+                    <SeatSelection
+                      eventId={event.id}
+                      onSeatsSelected={handleSeatsSelected}
+                      maxSeats={10}
+                      refreshTrigger={seatRefreshTrigger}
+                    />
+                    
+                    {selectedSeats.length > 0 && (
+                      <div className="bg-white rounded-lg p-4 border">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Order Summary</div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Selected seats:</span>
+                            <span className="font-medium text-gray-800">{selectedSeats.length}</span>
+                          </div>
+                          <div className="border-t pt-1 mt-2">
+                            <div className="flex justify-between font-semibold">
+                              <span className="text-gray-700">Total:</span>
+                              <span className="text-green-600">${totalPrice.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  /* Regular ticket selection */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Tickets
+                      </label>
+                      <input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        max={Math.min(event.availableCapacity, 10)}
+                        value={quantity}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (value >= 1 && value <= Math.min(event.availableCapacity, 10)) {
+                            setQuantity(value);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (isNaN(value) || value < 1) {
+                            setQuantity(1);
+                          } else if (value > Math.min(event.availableCapacity, 10)) {
+                            setQuantity(Math.min(event.availableCapacity, 10));
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={bookingLoading}
+                        placeholder="Enter number of tickets"
+                      />
+                      <div className="mt-1 text-xs text-gray-500">
+                        Max {Math.min(event.availableCapacity, 10)} tickets allowed
+                      </div>
+                    </div>
 
-                  <div>
-                    <div className="text-sm font-medium text-gray-700 mb-2">Order Summary</div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>Price per ticket:</span>
-                        <span>${formatPrice(event.price)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Quantity:</span>
-                        <span>{quantity}</span>
-                      </div>
-                      <div className="border-t pt-1 mt-2">
-                        <div className="flex justify-between font-semibold">
-                          <span>Total:</span>
-                          <span>${totalPrice}</span>
+                    <div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">Order Summary</div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Price per ticket:</span>
+                          <span className="font-medium text-gray-800">${formatPrice(event.price)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Quantity:</span>
+                          <span className="font-medium text-gray-800">{quantity}</span>
+                        </div>
+                        <div className="border-t pt-1 mt-2">
+                          <div className="flex justify-between font-semibold">
+                            <span className="text-gray-700">Total:</span>
+                            <span className="text-green-600">${calculateTotalPrice()}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <div className="mt-6 flex flex-col sm:flex-row gap-4">
                   {isAuthenticated ? (
                     <button
                       onClick={handleBooking}
-                      disabled={bookingLoading}
+                      disabled={bookingLoading || (event.seatLevelBooking && selectedSeats.length === 0)}
                       className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <CreditCard className="h-5 w-5 mr-2" />
-                      {bookingLoading ? 'Processing...' : `Book ${quantity} Ticket${quantity > 1 ? 's' : ''}`}
+                      {bookingLoading ? 'Processing...' : 
+                        event.seatLevelBooking ? 
+                          `Book ${selectedSeats.length} Selected Seat${selectedSeats.length !== 1 ? 's' : ''}` :
+                          `Book ${quantity} Ticket${quantity > 1 ? 's' : ''}`
+                      }
                     </button>
                   ) : (
                     <Link
@@ -386,6 +509,18 @@ export default function EventDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Congratulations Popup */}
+      {showCongratulations && lastBooking && (
+        <CongratulationsPopup
+          isOpen={showCongratulations}
+          onClose={() => setShowCongratulations(false)}
+          eventName={lastBooking.eventName}
+          ticketCount={lastBooking.ticketCount}
+          bookingId={lastBooking.id}
+          totalPrice={lastBooking.totalPrice}
+        />
+      )}
     </div>
   );
 }

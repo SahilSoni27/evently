@@ -41,7 +41,7 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/login"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                className="text-gray-800 hover:text-gray-900 px-3 py-2 text-sm font-medium"
               >
                 Sign In
               </Link>
@@ -63,7 +63,7 @@ export default function Home() {
             Manage Events with
             <span className="block text-blue-600">Confidence</span>
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-800 mb-8 max-w-3xl mx-auto">
             Create, manage, and track your events seamlessly. From small gatherings to large conferences, 
             Evently provides all the tools you need to make your events successful.
           </p>
@@ -92,7 +92,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Calendar className="h-12 w-12 text-blue-600 mb-4" />
               <h4 className="text-xl font-semibold text-gray-900 mb-2">Event Management</h4>
-              <p className="text-gray-600">
+              <p className="text-gray-800">
                 Create and manage events with ease. Set dates, venues, pricing, and capacity limits.
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Users className="h-12 w-12 text-green-600 mb-4" />
               <h4 className="text-xl font-semibold text-gray-900 mb-2">Booking System</h4>
-              <p className="text-gray-600">
+              <p className="text-gray-800">
                 Accept bookings online with real-time availability and automatic confirmations.
               </p>
             </div>
@@ -108,7 +108,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <CreditCard className="h-12 w-12 text-purple-600 mb-4" />
               <h4 className="text-xl font-semibold text-gray-900 mb-2">Payment Processing</h4>
-              <p className="text-gray-600">
+              <p className="text-gray-800">
                 Secure payment processing with support for refunds and payment tracking.
               </p>
             </div>
@@ -116,7 +116,7 @@ export default function Home() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Shield className="h-12 w-12 text-orange-600 mb-4" />
               <h4 className="text-xl font-semibold text-gray-900 mb-2">Admin Dashboard</h4>
-              <p className="text-gray-600">
+              <p className="text-gray-800">
                 Powerful analytics and insights to track your event performance and revenue.
               </p>
             </div>
@@ -128,8 +128,8 @@ export default function Home() {
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-6">
             Try the Demo
           </h3>
-          <p className="text-center text-gray-600 mb-8">
-            Experience Evently with our demo accounts. No registration required!
+                    <p className="text-center text-gray-800 mb-8">
+            Explore our features with these demo accounts and sample events
           </p>
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <Link
@@ -139,10 +139,10 @@ export default function Home() {
               <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
                 User Demo
               </h4>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-800 mb-4">
                 Explore the user experience - browse events, make bookings, and manage your tickets.
               </p>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-700">
                 <div>Email: user@evently.com</div>
                 <div>Password: password123</div>
               </div>
@@ -155,10 +155,10 @@ export default function Home() {
               <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-green-600">
                 Admin Demo
               </h4>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-800 mb-4">
                 Access the admin dashboard - create events, manage bookings, and view analytics.
               </p>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-700">
                 <div>Email: admin@evently.com</div>
                 <div>Password: admin123</div>
               </div>
@@ -174,7 +174,7 @@ export default function Home() {
             <Calendar className="h-6 w-6 text-blue-400 mr-2" />
             <span className="text-xl font-bold">Evently</span>
           </div>
-          <p className="text-gray-400">
+          <p className="text-gray-300">
             Built with Next.js, TypeScript, and Tailwind CSS
           </p>
         </div>

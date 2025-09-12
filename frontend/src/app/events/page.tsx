@@ -149,7 +149,7 @@ export default function EventsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Discover Events</h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-800">
             Find and book amazing events happening around you
           </p>
         </div>
@@ -159,11 +159,11 @@ export default function EventsPage() {
           {/* Main Search Bar */}
           <form onSubmit={handleSearch} className="mb-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
               <input
                 type="text"
                 placeholder="Search events by name, description, or venue..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-700 text-gray-900"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -178,7 +178,7 @@ export default function EventsPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               >
                 {categoryOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -191,7 +191,7 @@ export default function EventsPage() {
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="flex items-center gap-2 px-3 py-2 text-gray-800 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 <Filter className="h-4 w-4" />
                 More Filters
@@ -213,7 +213,7 @@ export default function EventsPage() {
             {/* Sort Options */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Sort by:</span>
+                <span className="text-sm text-gray-800">Sort by:</span>
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
@@ -221,7 +221,7 @@ export default function EventsPage() {
                     setSortBy(field);
                     setSortOrder(order);
                   }}
-                  className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                 >
                   <option value="startTime-asc">Date (Earliest)</option>
                   <option value="startTime-desc">Date (Latest)</option>
@@ -240,7 +240,7 @@ export default function EventsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Price Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-800 mb-2">
                     Price Range
                   </label>
                   <div className="flex items-center gap-2">
@@ -249,15 +249,15 @@ export default function EventsPage() {
                       placeholder="Min"
                       value={priceRange.min}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-700 text-gray-900"
                     />
-                    <span className="text-gray-500">to</span>
+                    <span className="text-gray-800">to</span>
                     <input
                       type="number"
                       placeholder="Max"
                       value={priceRange.max}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-700 text-gray-900"
                     />
                   </div>
                   <button

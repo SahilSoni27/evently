@@ -57,6 +57,7 @@ const tickets_1 = __importDefault(require("./routes/tickets"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
 const search_1 = __importDefault(require("./routes/search"));
 const docs_1 = __importDefault(require("./routes/docs"));
+const seats_1 = __importDefault(require("./routes/seats"));
 // Load environment variables
 dotenv_1.default.config();
 // Initialize workers in production
@@ -72,11 +73,26 @@ const PORT = process.env.PORT || 4000;
 // Security middleware
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
-    origin: [
-        process.env.FRONTEND_URL || 'http://localhost:3000',
-        'http://localhost:3001', // Additional port for development
-        'http://localhost:3000'
-    ],
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            process.env.FRONTEND_URL || 'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:3000',
+            'https://eventlyatlan.netlify.app'
+        ];
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin)
+            return callback(null, true);
+        // Allow Netlify domains
+        if (origin.endsWith('.netlify.app')) {
+            return callback(null, true);
+        }
+        // Check if origin is in allowed list
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        callback(new Error('Not allowed by CORS'));
+    },
     credentials: true
 }));
 // Rate limiting
@@ -123,6 +139,7 @@ app.use('/api/auth', auth_1.default);
 app.use('/api/events', events_1.default);
 app.use('/api/bookings', bookings_1.default);
 app.use('/api/payments', payments_1.default);
+app.use('/api/seats', seats_1.default);
 app.use('/api/admin/analytics', adminAnalytics_1.default);
 app.use('/api/admin', adminDashboard_1.default);
 app.use('/api/admin/queues', queueManagement_1.default);

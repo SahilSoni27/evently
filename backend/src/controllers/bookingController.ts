@@ -212,7 +212,9 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
         eventStartTime: result.booking.event.startTime,
         venue: result.booking.event.venue,
         qrCodeData,
-        ticketNumber: `EVT-${result.booking.id.substring(0, 8).toUpperCase()}`
+        ticketNumber: `EVT-${result.booking.id.substring(0, 8).toUpperCase()}`,
+        ticketQuantity: result.booking.quantity,
+        totalPrice: parseFloat(result.booking.totalPrice.toString())
       });
 
       // Schedule event reminder (24 hours before event)
@@ -450,7 +452,8 @@ export const cancelBooking = asyncHandler(async (req: any, res: Response) => {
             id: true,
             name: true,
             startTime: true,
-            version: true
+            version: true,
+            seatLevelBooking: true
           }
         }
       }
@@ -485,6 +488,13 @@ export const cancelBooking = asyncHandler(async (req: any, res: Response) => {
           updatedAt: new Date()
         }
       });
+
+      // For seat-level bookings, also delete the seat bookings
+      if (booking.event.seatLevelBooking) {
+        await tx.seatBooking.deleteMany({
+          where: { bookingId: id }
+        });
+      }
 
       // Restore event capacity with version check (optimistic locking)
       const updatedEvent = await tx.event.updateMany({
