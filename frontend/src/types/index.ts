@@ -52,6 +52,7 @@ export interface Event {
   category: EventCategory;
   tags: string[];
   imageUrl: string | null;
+  seatLevelBooking?: boolean;
   createdAt: string;
   updatedAt: string;
   _count: {

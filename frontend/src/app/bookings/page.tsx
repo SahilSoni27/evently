@@ -110,8 +110,8 @@ function BookingsPage() {
       <Navbar />
       <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-          <p className="text-gray-600 mt-2">View and manage your event bookings</p>
+          <h1 className="text-3xl font-bold text-black">My Bookings</h1>
+          <p className="text-black mt-2">View and manage your event bookings</p>
         </div>
 
         {bookings.length > 0 ? (
@@ -126,10 +126,10 @@ function BookingsPage() {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                          <h3 className="text-xl font-semibold text-black mb-2">
                             {booking.event.name}
                           </h3>
-                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <div className="flex items-center space-x-4 text-sm text-black">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                               {booking.status}
                             </span>
@@ -140,29 +140,29 @@ function BookingsPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
-                          <div className="flex items-center text-gray-600">
+                          <div className="flex items-center text-black">
                             <Calendar className="h-4 w-4 mr-2" />
                             <span className="text-sm">{formatDate(booking.event.startTime)}</span>
                           </div>
                           {booking.event.endTime && (
-                            <div className="flex items-center text-gray-600 ml-6">
+                            <div className="flex items-center text-black ml-6">
                               <span className="text-xs">Ends: {formatDate(booking.event.endTime)}</span>
                             </div>
                           )}
-                          <div className="flex items-center text-gray-600">
+                          <div className="flex items-center text-black">
                             <MapPin className="h-4 w-4 mr-2" />
                             <span className="text-sm">{booking.event.venue}</span>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="flex items-center text-gray-600">
+                          <div className="flex items-center text-black">
                             <Users className="h-4 w-4 mr-2" />
                             <span className="text-sm">
                               {booking.quantity} {booking.quantity === 1 ? 'ticket' : 'tickets'}
                             </span>
                           </div>
-                          <div className="flex items-center text-gray-600">
+                          <div className="flex items-center text-black">
                             <CreditCard className="h-4 w-4 mr-2" />
                             <span className="text-sm font-medium">
                               ${formatPrice(booking.totalPrice)}

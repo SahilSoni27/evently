@@ -196,6 +196,18 @@ class ApiClient {
     const params = new URLSearchParams({ timeframe });
     return this.request(`/api/admin/dashboard/revenue?${params}`);
   }
+
+  // Seat Management
+  async getEventSeats(eventId: string) {
+    return this.request(`/api/seats/event/${eventId}`);
+  }
+
+  async bookSeats(data: { eventId: string; seatIds: string[]; idempotencyKey?: string }) {
+    return this.request('/api/seats/book', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
