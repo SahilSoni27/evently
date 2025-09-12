@@ -55,6 +55,7 @@ async function main() {
         capacity: 500,
         availableCapacity: 500,
         price: 299.99,
+        seatLevelBooking: false, // Regular quantity-based booking
       },
     }),
     prisma.event.create({
@@ -67,18 +68,20 @@ async function main() {
         capacity: 10000,
         availableCapacity: 10000,
         price: 199.99,
+        seatLevelBooking: false, // Regular quantity-based booking
       },
     }),
     prisma.event.create({
       data: {
-        name: 'Startup Pitch Competition',
-        description: 'Local entrepreneurs pitch their innovative ideas',
-        venue: 'Innovation Hub',
-        startTime: new Date('2025-10-30T10:00:00Z'),
-        endTime: new Date('2025-10-30T16:00:00Z'),
+        name: 'Theater Show - BookMyShow Style',
+        description: 'Premium theater experience with individual seat selection',
+        venue: 'Grand Theater',
+        startTime: new Date('2025-10-30T19:30:00Z'),
+        endTime: new Date('2025-10-30T22:00:00Z'),
         capacity: 100,
         availableCapacity: 100,
-        price: 49.99,
+        price: 75.99,
+        seatLevelBooking: true, // Individual seat selection like BookMyShow
       },
     }),
     prisma.event.create({
@@ -91,23 +94,50 @@ async function main() {
         capacity: 300,
         availableCapacity: 300,
         price: 89.99,
+        seatLevelBooking: false, // Regular quantity-based booking
       },
     }),
     prisma.event.create({
       data: {
-        name: 'AI Workshop',
-        description: 'Hands-on workshop on artificial intelligence and machine learning',
+        name: 'AI Workshop - Premium Seating',
+        description: 'Hands-on workshop with assigned premium seats',
         venue: 'Tech Campus Building A',
         startTime: new Date('2025-12-01T09:00:00Z'),
         endTime: new Date('2025-12-01T17:00:00Z'),
         capacity: 50,
         availableCapacity: 50,
         price: 149.99,
+        seatLevelBooking: true, // Individual seat selection
       },
     }),
   ]);
 
   console.log('✅ Created events');
+
+  // Generate seats for events with seatLevelBooking enabled
+  const { SeatGenerationService } = await import('../src/services/seatGenerationService');
+  
+  // Generate seats for Theater Show
+  const theaterEvent = events.find(e => e.name === 'Theater Show - BookMyShow Style');
+  if (theaterEvent) {
+    await SeatGenerationService.generateSeatsForEvent({
+      eventId: theaterEvent.id,
+      capacity: theaterEvent.capacity,
+      venueName: 'Grand Theater'
+    });
+    console.log(`✅ Generated ${theaterEvent.capacity} seats for Theater Show`);
+  }
+
+  // Generate seats for AI Workshop
+  const workshopEvent = events.find(e => e.name === 'AI Workshop - Premium Seating');
+  if (workshopEvent) {
+    await SeatGenerationService.generateSeatsForEvent({
+      eventId: workshopEvent.id,
+      capacity: workshopEvent.capacity,
+      venueName: 'Tech Campus Building A'
+    });
+    console.log(`✅ Generated ${workshopEvent.capacity} seats for AI Workshop`);
+  }
 
   // Create some sample bookings
   await prisma.booking.create({

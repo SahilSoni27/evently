@@ -42,7 +42,9 @@ class EmailService {
                 eventTime: data.eventStartTime ? new Date(data.eventStartTime).toLocaleTimeString() : 'TBD',
                 quantity: data.ticketQuantity || 1,
                 totalPrice: data.totalPrice || 0,
-                bookingId: data.bookingId || 'N/A'
+                bookingId: data.bookingId || 'N/A',
+                qrCodeData: data.qrCodeData,
+                ticketNumber: data.ticketNumber
             });
             if (success) {
                 console.log(`✅ Booking confirmation sent to ${data.to}`);

@@ -218,7 +218,9 @@ exports.createBooking = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                 eventStartTime: result.booking.event.startTime,
                 venue: result.booking.event.venue,
                 qrCodeData,
-                ticketNumber: `EVT-${result.booking.id.substring(0, 8).toUpperCase()}`
+                ticketNumber: `EVT-${result.booking.id.substring(0, 8).toUpperCase()}`,
+                ticketQuantity: result.booking.quantity,
+                totalPrice: parseFloat(result.booking.totalPrice.toString())
             });
             // Schedule event reminder (24 hours before event)
             const reminderTime = new Date(result.booking.event.startTime);
@@ -436,7 +438,8 @@ exports.cancelBooking = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                         id: true,
                         name: true,
                         startTime: true,
-                        version: true
+                        version: true,
+                        seatLevelBooking: true
                     }
                 }
             }
@@ -466,6 +469,12 @@ exports.cancelBooking = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                     updatedAt: new Date()
                 }
             });
+            // For seat-level bookings, also delete the seat bookings
+            if (booking.event.seatLevelBooking) {
+                await tx.seatBooking.deleteMany({
+                    where: { bookingId: id }
+                });
+            }
             // Restore event capacity with version check (optimistic locking)
             const updatedEvent = await tx.event.updateMany({
                 where: {

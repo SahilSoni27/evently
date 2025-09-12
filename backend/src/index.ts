@@ -21,6 +21,7 @@ import ticketRoutes from './routes/tickets';
 import notificationRoutes from './routes/notifications';
 import searchRoutes from './routes/search';
 import docsRoutes from './routes/docs';
+import seatRoutes from './routes/seats';
 
 // Load environment variables
 dotenv.config();
@@ -114,6 +115,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/seats', seatRoutes);
 app.use('/api/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/admin', adminDashboardRoutes);
 app.use('/api/admin/queues', queueManagementRoutes);

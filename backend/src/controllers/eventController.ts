@@ -44,6 +44,9 @@ export const getEvents = asyncHandler(async (req: Request, res: Response) => {
         capacity: true,
         availableCapacity: true,
         price: true,
+        category: true,
+        tags: true,
+        seatLevelBooking: true,
         createdAt: true,
         updatedAt: true,
         _count: {

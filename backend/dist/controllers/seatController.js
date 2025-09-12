@@ -3,12 +3,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBookingSeats = exports.bookSeats = exports.getEventSeats = void 0;
-const prisma_1 = __importDefault(require("../lib/prisma"));
+exports.getVenueLayout = exports.generateSeatsForEvent = exports.checkBookingStatus = exports.bookSeats = exports.getSeatsForEvent = void 0;
 const errorHandler_1 = require("../middleware/errorHandler");
-// GET /api/seats/event/:eventId - Get available seats for an event
-exports.getEventSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+const prisma_1 = __importDefault(require("../lib/prisma"));
+const seatBookingQueue_1 = require("../services/seatBookingQueue");
+const seatGenerationService_1 = require("../services/seatGenerationService");
+// GET /api/seats/event/:eventId - Get all seats for an event with sections
+exports.getSeatsForEvent = (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const { eventId } = req.params;
+    // Get event with venue and seats
     const event = await prisma_1.default.event.findUnique({
         where: { id: eventId },
         include: {
@@ -19,9 +22,13 @@ exports.getEventSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                             seats: {
                                 include: {
                                     bookings: {
-                                        where: {
+                                        include: {
                                             booking: {
-                                                status: 'CONFIRMED'
+                                                select: {
+                                                    id: true,
+                                                    status: true,
+                                                    userId: true
+                                                }
                                             }
                                         }
                                     }
@@ -39,29 +46,32 @@ exports.getEventSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
             message: 'Event not found'
         });
     }
-    if (!event.seatLevelBooking || !event.venueDetails) {
+    if (!event.venueDetails || !event.venueDetails.sections) {
         return res.status(400).json({
             status: 'error',
-            message: 'This event does not support seat selection'
+            message: 'No venue or seats found for this event'
         });
     }
-    // Format seat data with availability
-    const seatMap = event.venueDetails.sections.map(section => ({
+    // Format sections with seats
+    const sections = event.venueDetails.sections.map((section) => ({
         id: section.id,
         name: section.name,
         capacity: section.capacity,
         priceMultiplier: Number(section.priceMultiplier),
         basePrice: Number(event.price),
         sectionPrice: Number(event.price) * Number(section.priceMultiplier),
-        seats: section.seats.map(seat => ({
-            id: seat.id,
-            row: seat.row,
-            number: seat.number,
-            seatType: seat.seatType,
-            isBlocked: seat.isBlocked,
-            isBooked: seat.bookings.length > 0,
-            price: Number(event.price) * Number(section.priceMultiplier)
-        }))
+        seats: section.seats.map((seat) => {
+            const confirmedBooking = seat.bookings.find((sb) => sb.booking.status === 'CONFIRMED');
+            return {
+                id: seat.id,
+                row: seat.row,
+                number: seat.number,
+                seatType: seat.seatType,
+                isBlocked: seat.isBlocked,
+                isBooked: !!confirmedBooking,
+                price: Number(event.price) * Number(section.priceMultiplier)
+            };
+        })
     }));
     res.json({
         status: 'success',
@@ -76,12 +86,12 @@ exports.getEventSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                 name: event.venueDetails.name,
                 capacity: event.venueDetails.capacity
             },
-            sections: seatMap,
-            totalAvailableSeats: seatMap.reduce((total, section) => total + section.seats.filter(seat => !seat.isBooked && !seat.isBlocked).length, 0)
+            sections,
+            totalAvailableSeats: sections.reduce((total, section) => total + section.seats.filter((seat) => !seat.isBooked && !seat.isBlocked).length, 0)
         }
     });
 });
-// POST /api/seats/book - Book specific seats
+// POST /api/seats/book - Book specific seats using queue system
 exports.bookSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const { eventId, seatIds, idempotencyKey } = req.body;
     const userId = req.user?.id;
@@ -97,233 +107,119 @@ exports.bookSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
             message: 'Please select at least one seat'
         });
     }
-    // Get event details
-    const event = await prisma_1.default.event.findUnique({
-        where: { id: eventId },
-        include: {
-            venueDetails: {
-                include: {
-                    sections: {
-                        include: {
-                            seats: {
-                                where: {
-                                    id: { in: seatIds }
-                                },
-                                include: {
-                                    section: true,
-                                    bookings: {
-                                        where: {
-                                            booking: {
-                                                status: 'CONFIRMED'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+    try {
+        // Add booking job to queue
+        const jobId = await (0, seatBookingQueue_1.addSeatBookingJob)({
+            userId,
+            eventId,
+            seatIds,
+            idempotencyKey,
+            timestamp: Date.now()
+        });
+        res.json({
+            status: 'success',
+            message: 'Booking request queued successfully',
+            data: {
+                jobId,
+                checkStatusUrl: `/api/seats/booking-status/${jobId}`
             }
-        }
-    });
-    if (!event) {
-        return res.status(404).json({
-            status: 'error',
-            message: 'Event not found'
         });
     }
-    if (!event.seatLevelBooking) {
-        return res.status(400).json({
+    catch (error) {
+        res.status(500).json({
             status: 'error',
-            message: 'This event does not support seat selection'
+            message: error.message || 'Failed to queue booking request'
         });
     }
-    // Collect all seats from all sections
-    const allSeats = event.venueDetails?.sections.flatMap(section => section.seats) || [];
-    // Check if all requested seats exist and are available
-    const unavailableSeats = [];
-    const availableSeats = [];
-    for (const seatId of seatIds) {
-        const seat = allSeats.find(s => s.id === seatId);
-        if (!seat) {
+});
+// GET /api/seats/booking-status/:jobId - Check booking status
+exports.checkBookingStatus = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const { jobId } = req.params;
+    try {
+        const result = await (0, seatBookingQueue_1.getSeatBookingResult)(jobId);
+        if (!result) {
             return res.status(404).json({
                 status: 'error',
-                message: `Seat ${seatId} not found`
+                message: 'Booking job not found'
             });
         }
-        if (seat.isBlocked || seat.bookings.length > 0) {
-            unavailableSeats.push(seat);
-        }
-        else {
-            availableSeats.push(seat);
-        }
+        res.json({
+            status: 'success',
+            data: result
+        });
     }
-    if (unavailableSeats.length > 0) {
-        return res.status(400).json({
+    catch (error) {
+        res.status(500).json({
             status: 'error',
-            message: 'Some selected seats are no longer available',
-            data: {
-                unavailableSeats: unavailableSeats.map(seat => ({
-                    id: seat.id,
-                    row: seat.row,
-                    number: seat.number,
-                    reason: seat.isBlocked ? 'blocked' : 'already_booked'
-                }))
-            }
+            message: error.message || 'Failed to check booking status'
         });
     }
-    // Calculate total price
-    const totalPrice = availableSeats.reduce((total, seat) => {
-        const sectionPrice = Number(event.price) * Number(seat.section.priceMultiplier);
-        return total + sectionPrice;
-    }, 0);
-    // Create booking with seats in a transaction
-    const result = await prisma_1.default.$transaction(async (tx) => {
-        // Check for duplicate booking
-        if (idempotencyKey) {
-            const existingBooking = await tx.booking.findFirst({
-                where: {
-                    userId,
-                    idempotencyKey
-                }
-            });
-            if (existingBooking) {
-                return { booking: existingBooking, isNew: false };
-            }
-        }
-        // Create main booking
-        const booking = await tx.booking.create({
-            data: {
-                userId,
-                eventId,
-                quantity: seatIds.length,
-                totalPrice,
-                status: 'CONFIRMED',
-                idempotencyKey
-            },
-            include: {
-                event: {
-                    select: {
-                        id: true,
-                        name: true,
-                        venue: true,
-                        startTime: true,
-                        endTime: true
-                    }
-                },
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                }
-            }
-        });
-        // Create seat bookings
-        const seatBookings = await Promise.all(availableSeats.map(seat => tx.seatBooking.create({
-            data: {
-                bookingId: booking.id,
-                seatId: seat.id,
-                price: Number(event.price) * Number(seat.section.priceMultiplier)
-            }
-        })));
-        return { booking, seatBookings, isNew: true };
-    });
-    res.status(201).json({
-        status: 'success',
-        message: 'Seats booked successfully',
-        data: {
-            booking: result.booking,
-            seats: availableSeats.map(seat => ({
-                id: seat.id,
-                row: seat.row,
-                number: seat.number,
-                section: seat.section.name,
-                price: Number(event.price) * Number(seat.section.priceMultiplier)
-            })),
-            totalPrice,
-            toast: {
-                type: 'success',
-                title: '🎉 Seats Reserved!',
-                message: `Congratulations! Your ${seatIds.length} seat(s) for "${result.booking.event?.name || 'the event'}" have been confirmed!`,
-                duration: 8000,
-                actions: [
-                    {
-                        label: 'Download Ticket',
-                        action: 'download_ticket',
-                        url: `/api/tickets/${result.booking.id}/download`
-                    },
-                    {
-                        label: 'View Booking',
-                        action: 'view_booking',
-                        url: `/api/bookings/${result.booking.id}`
-                    }
-                ]
-            }
-        }
-    });
 });
-// GET /api/seats/booking/:bookingId - Get seat details for a booking
-exports.getBookingSeats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
-    const { bookingId } = req.params;
+// POST /api/seats/generate - Generate seats for an event
+exports.generateSeatsForEvent = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const { eventId, capacity, venueName, seatsPerRow, sectionConfig } = req.body;
     const userId = req.user?.id;
-    const booking = await prisma_1.default.booking.findUnique({
-        where: { id: bookingId },
-        include: {
-            seatBookings: {
-                include: {
-                    seat: {
-                        include: {
-                            section: true
-                        }
-                    }
-                }
-            },
-            event: {
-                select: {
-                    id: true,
-                    name: true,
-                    venue: true,
-                    startTime: true,
-                    seatLevelBooking: true
-                }
-            }
-        }
-    });
-    if (!booking) {
-        return res.status(404).json({
-            status: 'error',
-            message: 'Booking not found'
-        });
-    }
-    // Check access permission
-    if (booking.userId !== userId && req.user?.role !== 'ADMIN') {
+    // Only admins can generate seats
+    if (req.user?.role !== 'ADMIN') {
         return res.status(403).json({
             status: 'error',
-            message: 'Access denied'
+            message: 'Admin access required'
         });
     }
-    const seatDetails = booking.seatBookings.map(seatBooking => ({
-        id: seatBooking.seat.id,
-        row: seatBooking.seat.row,
-        number: seatBooking.seat.number,
-        seatType: seatBooking.seat.seatType,
-        section: seatBooking.seat.section.name,
-        price: Number(seatBooking.price)
-    }));
+    if (!eventId || !capacity || !venueName) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'eventId, capacity, and venueName are required'
+        });
+    }
+    try {
+        const result = await seatGenerationService_1.SeatGenerationService.generateSeatsForEvent({
+            eventId,
+            capacity: parseInt(capacity),
+            venueName,
+            seatsPerRow: seatsPerRow ? parseInt(seatsPerRow) : 10,
+            sectionConfig
+        });
+        res.json({
+            status: 'success',
+            message: `Generated ${capacity} seats for event`,
+            data: result
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: error.message || 'Failed to generate seats'
+        });
+    }
+});
+// GET /api/seats/venue/:venueId - Get venue layout
+exports.getVenueLayout = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const { venueId } = req.params;
+    const venue = await prisma_1.default.venue.findUnique({
+        where: { id: venueId },
+        include: {
+            sections: {
+                include: {
+                    seats: {
+                        orderBy: [
+                            { row: 'asc' },
+                            { number: 'asc' }
+                        ]
+                    }
+                },
+                orderBy: { name: 'asc' }
+            }
+        }
+    });
+    if (!venue) {
+        return res.status(404).json({
+            status: 'error',
+            message: 'Venue not found'
+        });
+    }
     res.json({
         status: 'success',
-        data: {
-            booking: {
-                id: booking.id,
-                quantity: booking.quantity,
-                totalPrice: Number(booking.totalPrice),
-                status: booking.status
-            },
-            event: booking.event,
-            seats: seatDetails,
-            hasSeatSelection: booking.event.seatLevelBooking && seatDetails.length > 0
-        }
+        data: venue
     });
 });

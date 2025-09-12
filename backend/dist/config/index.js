@@ -5,13 +5,13 @@ const zod_1 = require("zod");
 // Environment variables validation
 const envSchema = zod_1.z.object({
     NODE_ENV: zod_1.z.enum(['development', 'production', 'test']).default('development'),
-    PORT: zod_1.z.string().default('3001'),
+    PORT: zod_1.z.string().default('4000'), // Backend port should be 4000
     DATABASE_URL: zod_1.z.string().url(),
     REDIS_URL: zod_1.z.string().url(),
     JWT_SECRET: zod_1.z.string().min(16),
     JWT_EXPIRES_IN: zod_1.z.string().default('7d'),
-    API_URL: zod_1.z.string().url().optional(),
-    FRONTEND_URL: zod_1.z.string().url().optional(),
+    API_URL: zod_1.z.string().url().optional(), // Backend's own URL
+    FRONTEND_URL: zod_1.z.string().url().optional(), // Frontend URL for CORS
 });
 // Validate environment variables
 const env = envSchema.safeParse(process.env);

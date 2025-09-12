@@ -43,6 +43,9 @@ exports.getEvents = (0, errorHandler_1.asyncHandler)(async (req, res) => {
                 capacity: true,
                 availableCapacity: true,
                 price: true,
+                category: true,
+                tags: true,
+                seatLevelBooking: true,
                 createdAt: true,
                 updatedAt: true,
                 _count: {
