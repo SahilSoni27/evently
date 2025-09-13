@@ -1,102 +1,134 @@
 # 🏗️ Evently System Architecture
 
-## High-Level Architecture Overview
+## System Overview
+
+Evently is a modern, scalable event booking platform built with a microservices-inspired architecture. The system is designed to handle high concurrency, real-time notifications, and complex booking workflows.
+
+## High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        CLIENT LAYER                             │
-├─────────────────────────────────────────────────────────────────┤
-│  Web Browser  │  Mobile PWA  │  Mobile Apps  │  Admin Dashboard │
-│  (React/Next) │  (Service W) │  (Future)     │  (React/Next)    │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                        ┌───────▼───────┐
-                        │  Load Balancer │
-                        │  (Cloudflare)  │
-                        └───────┬───────┘
-                                │
-┌─────────────────────────────────────────────────────────────────┐
-│                    APPLICATION LAYER                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────┐    ┌─────────────────┐                   │
-│  │   Frontend      │    │   Backend API   │                   │
-│  │   (Next.js)     │◄──►│   (Express.js)  │                   │
-│  │                 │    │                 │                   │
-│  │ • User Interface│    │ • REST APIs     │                   │
-│  │ • Authentication│    │ • Business Logic│                   │
-│  │ • State Mgmt    │    │ • Authentication│                   │
-│  │ • Push Notifications│ • Rate Limiting │                   │
-│  └─────────────────┘    └─────────────────┘                   │
-│                                  │                             │
-└─────────────────────────────────────────────────────────────────┘
-                                   │
-            ┌──────────────────────┼──────────────────────┐
-            │                      │                      │
-            ▼                      ▼                      ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CACHING       │    │  JOB QUEUE      │    │  NOTIFICATIONS  │
-│   (Redis)       │    │  (BullMQ)       │    │  (Web Push +    │
-│                 │    │                 │    │   Email)        │
-│ • Session Store │    │ • Background    │    │                 │
-│ • Rate Limits   │    │   Jobs          │    │ • Push Service  │
-│ • Temp Data     │    │ • Email Queue   │    │ • Email Service │
-│ • Pub/Sub       │    │ • Notifications │    │ • Templates     │
+│   Frontend      │    │    Backend      │    │   Database      │
+│   (Next.js)     │◄──►│   (Express)     │◄──►│  (PostgreSQL)   │
+│                 │    │   + TypeScript  │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-            │                      │                      │
-            └──────────────────────┼──────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │      DATA LAYER             │
-                    ├─────────────────────────────┤
-                    │     PostgreSQL Database     │
-                    │                             │
-                    │ • Users & Authentication    │
-                    │ • Events & Venues          │
-                    │ • Bookings & Tickets       │
-                    │ • Waitlists                │
-                    │ • Notifications History    │
-                    │ • Payments & Refunds       │
-                    │ • Analytics Data           │
-                    └─────────────────────────────┘
+         │                       │                       │
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Web Push API   │    │  Redis Cache    │    │  File Storage   │
+│  (Notifications)│    │  + BullMQ Jobs  │    │   (Future)      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## Component Architecture
+## Core Components
 
-### 🎨 Frontend Architecture (Next.js)
+### 🎨 Frontend (Next.js 15)
+- **App Router**: Modern routing with layouts and nested routes
+- **Server Components**: Improved performance with RSC
+- **TypeScript**: Full type safety across the application
+- **Tailwind CSS**: Utility-first styling framework
+- **Framer Motion**: Smooth animations and transitions
 
+### 🚀 Backend (Node.js + Express)
+- **RESTful API**: Standard HTTP API endpoints
+- **TypeScript**: Type-safe server-side development
+- **Prisma ORM**: Type-safe database operations
+- **JWT Authentication**: Stateless authentication system
+- **Rate Limiting**: API protection and abuse prevention
+
+### 💾 Data Layer
+- **PostgreSQL**: Primary relational database
+- **Redis**: Caching and session management
+- **Prisma Schema**: Database modeling and migrations
+
+### 🔄 Background Processing
+- **BullMQ**: Job queue for async operations
+- **Email Queue**: Automated email notifications
+- **Notification Queue**: Push notification delivery
+
+## Request Flow
+
+### Typical Booking Request Flow
 ```
-frontend/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/            # Authentication pages
-│   │   ├── dashboard/         # User dashboard
-│   │   ├── events/            # Event browsing
-│   │   ├── bookings/          # Booking management
-│   │   └── admin/             # Admin interface
-│   ├── components/            # Reusable UI components
-│   │   ├── ui/                # Basic UI elements
-│   │   ├── forms/             # Form components
-│   │   └── layout/            # Layout components
-│   ├── contexts/              # React contexts
-│   │   ├── AuthContext        # Authentication state
-│   │   └── NotificationContext # Notification state
-│   ├── lib/                   # Utilities & helpers
-│   │   ├── api.ts             # API client
-│   │   ├── auth.ts            # Auth utilities
-│   │   └── notifications.ts   # Push notification setup
-│   └── types/                 # TypeScript definitions
+User → Frontend → API Gateway → Backend → Database
+     ← Frontend ← Response   ← Backend ← Database
+
+1. User submits booking request
+2. Frontend validates and sends to API
+3. Backend checks availability & creates booking
+4. Database transaction ensures consistency
+5. Background job queues email/notification
+6. Response sent back to user
 ```
 
-**Key Features:**
+### Background Job Processing
+```
+API Request → Redis Queue → BullMQ Worker → Email/SMS/Push
+                        → Job Results → Monitoring
+```
 
-- **Server-Side Rendering (SSR)** for SEO and performance
-- **Client-Side Navigation** for smooth user experience
-- **Real-time Updates** via WebSocket connections
-- **Progressive Web App (PWA)** capabilities
-- **Responsive Design** for mobile and desktop
+## Key Architectural Patterns
 
-### 🚀 Backend Architecture (Express.js + TypeScript)
+### 1. Concurrency Safety
+- **Optimistic Locking**: Version-based conflict resolution
+- **Database Transactions**: ACID compliance for bookings
+- **Redis Locking**: Distributed locks for critical sections
+- **Queue Processing**: Async operations to avoid blocking
+
+### 2. Scalability Patterns
+- **Stateless Design**: No server-side session storage
+- **Horizontal Scaling**: Multiple backend instances
+- **Database Pooling**: Efficient connection management
+- **Caching Strategy**: Redis for frequently accessed data
+
+### 3. Security Patterns
+- **JWT Authentication**: Stateless token-based auth
+- **Role-Based Access**: Admin/User permission separation
+- **Input Validation**: Zod schemas for all endpoints
+- **Rate Limiting**: API abuse prevention
+
+### 4. Reliability Patterns
+- **Health Checks**: Service monitoring endpoints
+- **Graceful Degradation**: Fallbacks for external services
+- **Circuit Breakers**: Failure isolation
+- **Retry Logic**: Automatic failure recovery
+
+## Performance Considerations
+
+### Database Optimization
+- **Indexes**: Optimized queries for booking operations
+- **Connection Pooling**: Efficient resource utilization
+- **Query Optimization**: Minimal N+1 queries
+- **Read Replicas**: Scaling read operations
+
+### Caching Strategy
+- **Application Cache**: Frequently accessed data in Redis
+- **Query Result Cache**: Database query caching
+- **Session Storage**: Redis-based session management
+- **CDN Integration**: Static asset delivery
+
+### Background Processing
+- **Job Queues**: Non-blocking operations
+- **Worker Scaling**: Multiple job processors
+- **Priority Queues**: Critical jobs first
+- **Failure Handling**: Retry and dead letter queues
+
+## Monitoring & Observability
+
+### Application Metrics
+- Request/response times and status codes
+- Database query performance
+- Job queue processing rates
+- Error rates and types
+
+### Business Metrics
+- Booking conversion rates
+- User engagement metrics
+- Revenue tracking
+- Waitlist effectiveness
+
+This architecture supports high-traffic event booking scenarios while maintaining data consistency and providing excellent user experience.
 
 ```
 backend/

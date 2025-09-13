@@ -196,105 +196,43 @@ NEXT_PUBLIC_VAPID_KEY=your-vapid-public-key
    - Generate a secure JWT secret for production
    - Update `JWT_SECRET` with a strong, unique value
 
-## 📚 API Documentation
+## 📚 Core API Endpoints
 
-### Authentication Endpoints
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user
 
-```
-POST   /api/auth/register     # User registration
-POST   /api/auth/login        # User login
-POST   /api/auth/logout       # User logout
-GET    /api/auth/me          # Get current user
-```
+### Events
+- `GET /api/events` - List all events
+- `POST /api/events` - Create event (Admin)
+- `GET /api/events/:id` - Event details
 
-### Event Management
+### Bookings
+- `POST /api/bookings` - Create booking
+- `GET /api/bookings/my` - User bookings
+- `DELETE /api/bookings/:id` - Cancel booking
 
-```
-GET    /api/events           # List all events
-GET    /api/events/:id       # Get event details
-POST   /api/events           # Create event (Admin)
-PUT    /api/events/:id       # Update event (Admin)
-DELETE /api/events/:id       # Delete event (Admin)
-GET    /api/events/stats     # Event statistics
-```
+### Waitlist
+- `POST /api/waitlist/join/:eventId` - Join waitlist
+- `GET /api/waitlist/user/:userId` - Waitlist status
 
-### Booking System
+### Tickets
+- `GET /api/tickets/:bookingId/download` - Download PDF ticket
 
-```
-POST   /api/bookings         # Create booking
-GET    /api/bookings/my      # Get user bookings
-GET    /api/bookings         # Get all bookings (Admin)
-DELETE /api/bookings/:id     # Cancel booking
-```
+## 🔑 Technical Implementation
 
-### Waitlist Management
+### Concurrency Handling
+- **Database Transactions**: Atomic booking operations preventing race conditions
+- **Optimistic Locking**: Version-based conflict resolution
+- **Queue Processing**: BullMQ manages high-volume concurrent requests
+- **Rate Limiting**: API protection against abuse
 
-```
-POST   /api/waitlist/join/:eventId    # Join waitlist
-GET    /api/waitlist/user/:userId     # User waitlist status
-GET    /api/waitlist/:eventId         # Event waitlist (Admin)
-```
-
-### Ticket Operations
-
-```
-GET    /api/tickets/:bookingId/download  # Download PDF ticket
-GET    /api/tickets/:bookingId/qr        # Get QR code
-GET    /api/tickets/:bookingId/details   # Ticket details
-```
-
-### Notifications
-
-```
-POST   /api/notifications/subscribe     # Subscribe to push notifications
-GET    /api/notifications/user/:userId  # Get notification history
-POST   /api/notifications/mark-read     # Mark notification as read
-```
-
-### Admin Analytics
-
-```
-GET    /api/admin/dashboard/overview    # Dashboard overview
-GET    /api/admin/users                 # User management
-GET    /api/admin/analytics             # Detailed analytics
-```
-
-### Search & Discovery
-
-```
-GET    /api/search/events      # Search events
-GET    /api/search/suggestions # Search suggestions
-```
-
-## 🎯 Key Features Deep Dive
-
-### 🔒 Concurrency & Race Conditions
-
-- **Database Transactions**: Ensures atomicity in booking operations
-- **Optimistic Locking**: Prevents double bookings with version checking
-- **Queue Processing**: BullMQ handles high-volume booking requests
-- **Rate Limiting**: Prevents abuse and ensures fair access
-
-### 📊 Scalability Solutions
-
-- **Connection Pooling**: Efficient database connection management
-- **Redis Caching**: Fast data retrieval and session management
-- **Indexed Queries**: Optimized database performance
-- **Background Processing**: Non-blocking operations for better UX
-
-### 🎫 Advanced Waitlist System
-
-- **Position Tracking**: Real-time waitlist position updates
-- **Automatic Promotion**: Smart algorithm for ticket availability
-- **Time-limited Booking**: Prevents indefinite holds on tickets
-- **Multi-channel Notifications**: Email + Push notifications
-
-### 📱 Comprehensive Notifications
-
-- **Real-time Push**: Browser notifications even when app is closed
-- **Email Templates**: Rich HTML emails with QR codes
-- **Notification History**: In-app notification center
-- **Admin Monitoring**: Track all system notifications
+### Scalability Features
+- **Connection Pooling**: Efficient database resource management
+- **Redis Caching**: Fast data retrieval and session storage
+- **Background Jobs**: Non-blocking email and notification processing
+- **Indexed Queries**: Optimized database performance for large datasets
 
 ## 🏃‍♂️ Development Workflow
 
