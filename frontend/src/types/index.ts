@@ -57,6 +57,21 @@ export interface Event {
   updatedAt: string;
   _count: {
     bookings: number;
+    waitlist?: number;
+  };
+  userStatus?: {
+    hasBooking: boolean;
+    bookingId?: string;
+    waitlistPosition?: number;
+    canJoinWaitlist?: boolean;
+    canBook?: boolean;
+  };
+  availability?: {
+    isFull: boolean;
+    available: number;
+    total: number;
+    waitlistCount: number;
+    bookingsCount: number;
   };
 }
 

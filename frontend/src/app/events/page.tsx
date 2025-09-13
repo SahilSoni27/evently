@@ -1,52 +1,67 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
-import { Event } from '@/types';
-import { Navbar } from '@/components/Navbar';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Calendar, MapPin, Users, Search, Filter, Tag, X, DollarSign } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
+import { Event } from "@/types";
+import { Navbar } from "@/components/Navbar";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Search,
+  Filter,
+  Tag,
+  X,
+  DollarSign,
+} from "lucide-react";
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sortBy, setSortBy] = useState('startTime');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [sortBy, setSortBy] = useState("startTime");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showFilters, setShowFilters] = useState(false);
 
   const categoryOptions = [
-    { value: '', label: 'All Categories' },
-    { value: 'CONFERENCE', label: 'Conference' },
-    { value: 'WORKSHOP', label: 'Workshop' },
-    { value: 'NETWORKING', label: 'Networking' },
-    { value: 'SOCIAL', label: 'Social' },
-    { value: 'BUSINESS', label: 'Business' },
-    { value: 'ENTERTAINMENT', label: 'Entertainment' },
-    { value: 'SPORTS', label: 'Sports' },
-    { value: 'EDUCATION', label: 'Education' },
-    { value: 'CULTURAL', label: 'Cultural' },
-    { value: 'OTHER', label: 'Other' }
+    { value: "", label: "All Categories" },
+    { value: "CONFERENCE", label: "Conference" },
+    { value: "WORKSHOP", label: "Workshop" },
+    { value: "NETWORKING", label: "Networking" },
+    { value: "SOCIAL", label: "Social" },
+    { value: "BUSINESS", label: "Business" },
+    { value: "ENTERTAINMENT", label: "Entertainment" },
+    { value: "SPORTS", label: "Sports" },
+    { value: "EDUCATION", label: "Education" },
+    { value: "CULTURAL", label: "Cultural" },
+    { value: "OTHER", label: "Other" },
   ];
 
-  const loadEvents = async (page = 1, searchQuery = search, category = selectedCategory, minPrice = priceRange.min, maxPrice = priceRange.max) => {
+  const loadEvents = async (
+    page = 1,
+    searchQuery = search,
+    category = selectedCategory,
+    minPrice = priceRange.min,
+    maxPrice = priceRange.max
+  ) => {
     setLoading(true);
     try {
       const response = await apiClient.getEvents(page, 12, searchQuery);
       const data = (response as any)?.data;
-      
+
       if (data) {
         setEvents(data.events || []);
         setTotalPages(data.pagination?.totalPages || 1);
         setCurrentPage(data.pagination?.currentPage || 1);
       }
     } catch (error) {
-      console.error('Failed to load events:', error);
+      console.error("Failed to load events:", error);
       setEvents([]);
     } finally {
       setLoading(false);
@@ -75,11 +90,11 @@ export default function EventsPage() {
   };
 
   const clearFilters = () => {
-    setSelectedCategory('');
-    setPriceRange({ min: '', max: '' });
-    setSearch('');
+    setSelectedCategory("");
+    setPriceRange({ min: "", max: "" });
+    setSearch("");
     setCurrentPage(1);
-    loadEvents(1, '', '', '', '');
+    loadEvents(1, "", "", "", "");
   };
 
   const handlePageChange = (page: number) => {
@@ -88,39 +103,39 @@ export default function EventsPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatPrice = (price: string) => {
     const numPrice = parseFloat(price);
-    return numPrice === 0 ? 'Free' : `$${numPrice.toFixed(2)}`;
+    return numPrice === 0 ? "Free" : `$${numPrice.toFixed(2)}`;
   };
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      CONFERENCE: 'bg-blue-100 text-blue-800',
-      WORKSHOP: 'bg-green-100 text-green-800',
-      NETWORKING: 'bg-purple-100 text-purple-800',
-      SOCIAL: 'bg-pink-100 text-pink-800',
-      BUSINESS: 'bg-gray-100 text-gray-800',
-      ENTERTAINMENT: 'bg-yellow-100 text-yellow-800',
-      SPORTS: 'bg-orange-100 text-orange-800',
-      EDUCATION: 'bg-indigo-100 text-indigo-800',
-      CULTURAL: 'bg-red-100 text-red-800',
-      OTHER: 'bg-gray-100 text-gray-600'
+      CONFERENCE: "bg-blue-100 text-blue-800",
+      WORKSHOP: "bg-green-100 text-green-800",
+      NETWORKING: "bg-purple-100 text-purple-800",
+      SOCIAL: "bg-pink-100 text-pink-800",
+      BUSINESS: "bg-gray-100 text-gray-800",
+      ENTERTAINMENT: "bg-yellow-100 text-yellow-800",
+      SPORTS: "bg-orange-100 text-orange-800",
+      EDUCATION: "bg-indigo-100 text-indigo-800",
+      CULTURAL: "bg-red-100 text-red-800",
+      OTHER: "bg-gray-100 text-gray-600",
     };
     return colors[category as keyof typeof colors] || colors.OTHER;
   };
@@ -144,11 +159,13 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
       <Navbar />
-      
+
       <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Discover Events</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Discover Events
+          </h1>
           <p className="text-xl text-gray-800">
             Find and book amazing events happening around you
           </p>
@@ -180,7 +197,7 @@ export default function EventsPage() {
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               >
-                {categoryOptions.map(option => (
+                {categoryOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -198,7 +215,10 @@ export default function EventsPage() {
               </button>
 
               {/* Clear Filters */}
-              {(selectedCategory || search || priceRange.min || priceRange.max) && (
+              {(selectedCategory ||
+                search ||
+                priceRange.min ||
+                priceRange.max) && (
                 <button
                   type="button"
                   onClick={clearFilters}
@@ -217,7 +237,7 @@ export default function EventsPage() {
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
-                    const [field, order] = e.target.value.split('-');
+                    const [field, order] = e.target.value.split("-");
                     setSortBy(field);
                     setSortOrder(order);
                   }}
@@ -248,7 +268,12 @@ export default function EventsPage() {
                       type="number"
                       placeholder="Min"
                       value={priceRange.min}
-                      onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                      onChange={(e) =>
+                        setPriceRange((prev) => ({
+                          ...prev,
+                          min: e.target.value,
+                        }))
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-700 text-gray-900"
                     />
                     <span className="text-gray-800">to</span>
@@ -256,7 +281,12 @@ export default function EventsPage() {
                       type="number"
                       placeholder="Max"
                       value={priceRange.max}
-                      onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                      onChange={(e) =>
+                        setPriceRange((prev) => ({
+                          ...prev,
+                          max: e.target.value,
+                        }))
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-700 text-gray-900"
                     />
                   </div>
@@ -278,7 +308,10 @@ export default function EventsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {events.map((event) => (
-                <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div
+                  key={event.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
                   {/* Event Image */}
                   {event.imageUrl ? (
                     <div className="w-full h-48 relative">
@@ -298,15 +331,19 @@ export default function EventsPage() {
                   <div className="p-6">
                     {/* Category and Tags */}
                     <div className="flex items-center gap-2 mb-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(event.category)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                          event.category
+                        )}`}
+                      >
                         {event.category}
                       </span>
                       {event.tags && event.tags.length > 0 && (
                         <div className="flex items-center gap-1">
                           <Tag className="h-3 w-3 text-gray-400" />
                           <span className="text-xs text-gray-500">
-                            {event.tags.slice(0, 2).join(', ')}
-                            {event.tags.length > 2 && '...'}
+                            {event.tags.slice(0, 2).join(", ")}
+                            {event.tags.length > 2 && "..."}
                           </span>
                         </div>
                       )}
@@ -329,25 +366,26 @@ export default function EventsPage() {
                       <div className="flex items-center text-gray-600">
                         <Calendar className="h-4 w-4 mr-2" />
                         <span className="text-sm">
-                          {formatDate(event.startTime)} at {formatTime(event.startTime)}
+                          {formatDate(event.startTime)} at{" "}
+                          {formatTime(event.startTime)}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center text-gray-600">
                         <MapPin className="h-4 w-4 mr-2" />
                         <span className="text-sm">{event.venue}</span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center text-gray-600">
                           <Users className="h-4 w-4 mr-2" />
                           <span className="text-sm">
-                            {event.availableCapacity} / {event.capacity} spots left
+                            {event.availableCapacity} / {event.capacity} spots
+                            left
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center text-green-600 font-semibold">
-                          <DollarSign className="h-4 w-4 mr-1" />
                           <span>{formatPrice(event.price)}</span>
                         </div>
                       </div>
@@ -375,21 +413,23 @@ export default function EventsPage() {
                 >
                   Previous
                 </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 text-sm border rounded-md ${
-                      currentPage === page
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-2 text-sm border rounded-md ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
@@ -403,13 +443,18 @@ export default function EventsPage() {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No events found
+            </h3>
             <p className="text-gray-600 mb-4">
               {search || selectedCategory || priceRange.min || priceRange.max
-                ? 'Try adjusting your filters to see more events.'
-                : 'No events are currently available. Check back later!'}
+                ? "Try adjusting your filters to see more events."
+                : "No events are currently available. Check back later!"}
             </p>
-            {(search || selectedCategory || priceRange.min || priceRange.max) && (
+            {(search ||
+              selectedCategory ||
+              priceRange.min ||
+              priceRange.max) && (
               <button
                 onClick={clearFilters}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

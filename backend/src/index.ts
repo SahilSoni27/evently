@@ -119,7 +119,7 @@ app.use('/api/seats', seatRoutes);
 app.use('/api/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/admin', adminDashboardRoutes);
 app.use('/api/admin/queues', queueManagementRoutes);
-app.use('/api/waitlist', waitlistRoutes);
+app.use('/api', waitlistRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
@@ -144,11 +144,16 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`� Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`� Analytics: http://localhost:${PORT}/api/admin/analytics/overview`);
 });
+
+// Configure server timeouts to prevent ECONNRESET errors
+server.timeout = 60000; // 60 seconds
+server.keepAliveTimeout = 65000; // 65 seconds (should be greater than timeout)
+server.headersTimeout = 66000; // 66 seconds (should be greater than keepAliveTimeout)
 
 module.exports = app;
