@@ -677,7 +677,7 @@ function AdvancedAnalyticsPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <div className="relative">
+              {/* <div className="relative">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
@@ -686,7 +686,7 @@ function AdvancedAnalyticsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
-              </div>
+              </div> */}
 
               <select
                 value={selectedCategory}
