@@ -134,17 +134,22 @@ app.get('/api/health', async (req, res) => {
   // Test Redis connection
   try {
     const { default: redisCache } = await import('./lib/redis');
-    const redisStart = Date.now();
-    await redisCache.set('health-check', 'ok', 5);
-    await redisCache.get('health-check');
+    const redisHealth = await redisCache.healthCheck();
     healthCheck.services.redis = {
-      status: 'healthy',
-      responseTime: Date.now() - redisStart
+      status: redisHealth.status,
+      responseTime: redisHealth.latency || 0,
+      connected: redisCache.isConnected(),
+      error: redisHealth.error
     };
+    
+    if (redisHealth.status === 'unhealthy' && healthCheck.status === 'success') {
+      healthCheck.status = 'degraded';
+    }
   } catch (error) {
     healthCheck.services.redis = {
       status: 'unhealthy',
       responseTime: 0,
+      connected: false,
       error: error instanceof Error ? error.message : 'Redis connection failed'
     };
     if (healthCheck.status === 'success') {

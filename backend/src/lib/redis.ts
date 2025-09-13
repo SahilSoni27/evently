@@ -4,28 +4,65 @@ class RedisCache {
   private client: Redis;
 
   constructor() {
-    this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-      maxRetriesPerRequest: 3,
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isUpstash = process.env.REDIS_URL?.includes('upstash.io');
+    
+    // Configuration optimized for both local Redis and Upstash
+    const redisConfig = {
+      maxRetriesPerRequest: isUpstash ? 5 : 3,
       lazyConnect: true,
       enableReadyCheck: false,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
-    });
+      connectTimeout: isUpstash ? 30000 : 10000,
+      commandTimeout: isUpstash ? 10000 : 5000,
+      retryDelayOnFailover: 500,
+      retryDelayFunction: (times: number) => Math.min(times * 50, 2000),
+      // Only apply Upstash-specific settings when needed
+      ...(isUpstash && {
+        keepAlive: 30000,
+        family: 4, // Use IPv4
+        enableOfflineQueue: false, // Disable offline queue for better error handling
+        disconnectTimeout: 10000,
+        enableAutoPipelining: false, // Disable auto-pipelining for Upstash
+      }),
+      // Local Redis settings
+      ...(!isUpstash && {
+        enableOfflineQueue: true, // Enable for local Redis
+      })
+    };
 
-    this.client.on('error', (err) => {
-      console.error('❌ Redis error:', err.message);
+    this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', redisConfig);
+
+    this.client.on('error', (err: any) => {
+      console.error('❌ Redis error:', {
+        message: err.message,
+        code: err.code || 'UNKNOWN',
+        syscall: err.syscall || 'UNKNOWN'
+      });
+      
+      // Handle specific ECONNRESET errors
+      if (err.message.includes('ECONNRESET') || err.code === 'ECONNRESET') {
+        console.log('🔄 Redis ECONNRESET detected, connection will be retried automatically');
+      }
     });
 
     this.client.on('connect', () => {
-      console.log('✅ Redis connected successfully');
+      console.log('✅ Redis connected successfully to', this.client.options.host);
+    });
+
+    this.client.on('ready', () => {
+      console.log('🚀 Redis ready for commands');
     });
 
     this.client.on('close', () => {
       console.log('🔌 Redis connection closed');
     });
 
-    this.client.on('reconnecting', () => {
-      console.log('🔄 Redis reconnecting...');
+    this.client.on('reconnecting', (ms: number) => {
+      console.log(`🔄 Redis reconnecting in ${ms}ms...`);
+    });
+
+    this.client.on('end', () => {
+      console.log('🔚 Redis connection ended');
     });
   }
 
@@ -113,8 +150,34 @@ class RedisCache {
     }
   }
 
+  async healthCheck(): Promise<{ status: string; latency?: number; error?: string }> {
+    try {
+      const start = Date.now();
+      await this.client.ping();
+      const latency = Date.now() - start;
+      
+      return {
+        status: 'healthy',
+        latency
+      };
+    } catch (error: any) {
+      return {
+        status: 'unhealthy',
+        error: error.message
+      };
+    }
+  }
+
+  isConnected(): boolean {
+    return this.client.status === 'ready';
+  }
+
   async disconnect(): Promise<void> {
-    await this.client.disconnect();
+    try {
+      await this.client.disconnect();
+    } catch (error) {
+      console.error('Redis disconnect error:', error);
+    }
   }
 }
 
