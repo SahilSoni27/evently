@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
+import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 
 interface Seat {
   id: string;
@@ -30,7 +30,12 @@ interface SeatSelectionProps {
   refreshTrigger?: number; // Add refresh trigger
 }
 
-export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, refreshTrigger }: SeatSelectionProps) {
+export default function SeatSelection({
+  eventId,
+  onSeatsSelected,
+  maxSeats = 1,
+  refreshTrigger,
+}: SeatSelectionProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,14 +48,14 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
   const fetchSeats = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getEventSeats(eventId) as any;
-      if (response.status === 'success') {
+      const response = (await apiClient.getEventSeats(eventId)) as any;
+      if (response.status === "success") {
         setSections(response.data.sections);
       } else {
-        throw new Error(response.message || 'Failed to load seats');
+        throw new Error(response.message || "Failed to load seats");
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load seats');
+      setError(err.message || "Failed to load seats");
     } finally {
       setLoading(false);
     }
@@ -59,11 +64,11 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
   const handleSeatClick = (seatId: string, seat: Seat) => {
     if (seat.isBooked || seat.isBlocked) return;
 
-    setSelectedSeats(prev => {
+    setSelectedSeats((prev) => {
       let newSelected;
       if (prev.includes(seatId)) {
         // Deselect seat
-        newSelected = prev.filter(id => id !== seatId);
+        newSelected = prev.filter((id) => id !== seatId);
       } else if (prev.length < maxSeats) {
         // Select seat if under limit
         newSelected = [...prev, seatId];
@@ -71,7 +76,7 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
         // Replace first selected seat if at limit
         newSelected = [...prev.slice(1), seatId];
       }
-      
+
       return newSelected;
     });
   };
@@ -81,8 +86,8 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
     // Calculate total price
     const totalPrice = selectedSeats.reduce((total, selectedSeatId) => {
       const selectedSeat = sections
-        .flatMap(section => section.seats)
-        .find(s => s.id === selectedSeatId);
+        .flatMap((section) => section.seats)
+        .find((s) => s.id === selectedSeatId);
       return total + (selectedSeat?.price || 0);
     }, 0);
 
@@ -90,10 +95,10 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
   }, [selectedSeats, sections, onSeatsSelected]);
 
   const getSeatStatusClass = (seat: Seat) => {
-    if (seat.isBooked) return 'bg-red-500 text-white cursor-not-allowed';
-    if (seat.isBlocked) return 'bg-gray-400 text-white cursor-not-allowed';
-    if (selectedSeats.includes(seat.id)) return 'bg-blue-500 text-white';
-    return 'bg-green-500 text-white hover:bg-green-600 cursor-pointer';
+    if (seat.isBooked) return "bg-red-500 text-white cursor-not-allowed";
+    if (seat.isBlocked) return "bg-gray-400 text-white cursor-not-allowed";
+    if (selectedSeats.includes(seat.id)) return "bg-blue-500 text-white";
+    return "bg-green-500 text-white hover:bg-green-600 cursor-pointer";
   };
 
   if (loading) {
@@ -109,7 +114,7 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <p className="text-red-700">{error}</p>
-        <button 
+        <button
           onClick={fetchSeats}
           className="mt-2 text-red-600 hover:text-red-800 underline"
         >
@@ -122,15 +127,20 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-lg font-semibold mb-2">Select Your Seats</h3>
+        <h3 className="text-lg font-semibold mb-2" style={{ color: "black" }}>
+          Select Your Seats
+        </h3>
         <p className="text-gray-800">
           Selected: {selectedSeats.length} of {maxSeats} seats
         </p>
       </div>
 
       {/* Legend */}
-      <div className="flex justify-center space-x-6 text-sm">
-        <div className="flex items-center space-x-2">
+      <div
+        className="flex justify-center space-x-6 text-sm"
+        style={{ color: "black" }}
+      >
+        <div className="flex items-center space-x-2" style={{ color: "black" }}>
           <div className="w-4 h-4 bg-green-500 rounded"></div>
           <span>Available</span>
         </div>
@@ -157,15 +167,17 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
 
       {/* Seat Map */}
       <div className="space-y-8">
-        {sections.map(section => (
+        {sections.map((section) => (
           <div key={section.id} className="bg-white rounded-lg border p-4">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="font-semibold text-lg text-gray-900">{section.name}</h4>
+              <h4 className="font-semibold text-lg text-gray-900">
+                {section.name}
+              </h4>
               <span className="text-green-600 font-medium">
                 ${section.sectionPrice.toFixed(2)} per seat
               </span>
             </div>
-            
+
             {/* Group seats by row */}
             {Object.entries(
               section.seats.reduce((acc, seat) => {
@@ -181,7 +193,7 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
                 <div className="flex space-x-1">
                   {rowSeats
                     .sort((a, b) => parseInt(a.number) - parseInt(b.number))
-                    .map(seat => (
+                    .map((seat) => (
                       <button
                         key={seat.id}
                         onClick={() => handleSeatClick(seat.id, seat)}
@@ -191,7 +203,9 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
                           ${getSeatStatusClass(seat)}
                           transition-colors duration-200
                         `}
-                        title={`Row ${seat.row}, Seat ${seat.number} - $${seat.price.toFixed(2)}`}
+                        title={`Row ${seat.row}, Seat ${
+                          seat.number
+                        } - $${seat.price.toFixed(2)}`}
                       >
                         {seat.number}
                       </button>
@@ -205,20 +219,25 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
 
       {/* Selected Seats Summary */}
       {selectedSeats.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div
+          className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-black"
+          style={{ color: "black" }}
+        >
           <h4 className="font-semibold mb-2">Selected Seats:</h4>
           <div className="space-y-1">
-            {selectedSeats.map(seatId => {
+            {selectedSeats.map((seatId) => {
               const seat = sections
-                .flatMap(section => section.seats)
-                .find(s => s.id === seatId);
-              const section = sections.find(s => 
-                s.seats.some(seat => seat.id === seatId)
+                .flatMap((section) => section.seats)
+                .find((s) => s.id === seatId);
+              const section = sections.find((s) =>
+                s.seats.some((seat) => seat.id === seatId)
               );
-              
+
               return seat && section ? (
                 <div key={seatId} className="flex justify-between text-sm">
-                  <span>{section.name} - Row {seat.row}, Seat {seat.number}</span>
+                  <span>
+                    {section.name} - Row {seat.row}, Seat {seat.number}
+                  </span>
                   <span className="font-medium">${seat.price.toFixed(2)}</span>
                 </div>
               ) : null;
@@ -228,12 +247,15 @@ export default function SeatSelection({ eventId, onSeatsSelected, maxSeats = 1, 
             <div className="flex justify-between font-semibold">
               <span>Total:</span>
               <span>
-                ${selectedSeats.reduce((total, seatId) => {
-                  const seat = sections
-                    .flatMap(section => section.seats)
-                    .find(s => s.id === seatId);
-                  return total + (seat?.price || 0);
-                }, 0).toFixed(2)}
+                $
+                {selectedSeats
+                  .reduce((total, seatId) => {
+                    const seat = sections
+                      .flatMap((section) => section.seats)
+                      .find((s) => s.id === seatId);
+                    return total + (seat?.price || 0);
+                  }, 0)
+                  .toFixed(2)}
               </span>
             </div>
           </div>

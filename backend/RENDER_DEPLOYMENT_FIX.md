@@ -28,7 +28,7 @@
 - **Issue**: Upstash Redis connection timeouts and ECONNRESET errors
 - **Fix**: Enhanced Redis configuration with proper timeouts and error handling
 - **Location**: `backend/src/lib/redis.ts`
-- **Key changes**: 
+- **Key changes**:
   - Increased connection timeouts for Upstash (30s)
   - Added proper error handling for ECONNRESET
   - Disabled auto-pipelining for better stability
@@ -111,17 +111,20 @@ postgresql://user:pass@host:5432/db?sslmode=require&connection_limit=10&pool_tim
 The ECONNRESET errors you're seeing are likely from Redis connection issues. Ensure your Upstash Redis URL is correctly formatted:
 
 **Correct Upstash Redis URL format:**
+
 ```
 redis://default:password@region-endpoint.upstash.io:port
 ```
 
 **Key settings for Upstash Redis:**
+
 - Use the **Redis 6.0** compatible endpoint
 - Enable **TLS** if using rediss:// protocol
 - Set proper connection timeouts (30 seconds)
 - Disable auto-pipelining for better stability
 
 **Example Upstash URLs:**
+
 ```bash
 # Without TLS (recommended for initial testing)
 REDIS_URL=redis://default:your-password@us1-leading-mollusk-12345.upstash.io:12345
@@ -220,27 +223,31 @@ If you encounter issues after deployment:
 If you're getting continuous ECONNRESET errors:
 
 1. **Log into Upstash Console**:
+
    - Go to https://console.upstash.com/
    - Check if your Redis instance is active
    - Note the connection details
 
 2. **Get the correct Redis URL**:
+
    ```bash
    # Format should be exactly:
    redis://default:PASSWORD@ENDPOINT.upstash.io:PORT
    ```
 
 3. **Update Render Environment Variable**:
+
    - Go to your Render service dashboard
    - Find REDIS_URL in Environment Variables
    - Update with the exact URL from Upstash
    - Redeploy the service
 
 4. **Test immediately after deployment**:
+
    ```bash
    curl https://your-app.onrender.com/api/health
    ```
-   
+
    Look for `"redis": {"status": "healthy"}` in the response.
 
 ### Troubleshooting Common Issues
@@ -259,33 +266,38 @@ If you're getting continuous ECONNRESET errors:
 **Step-by-step Fix:**
 
 1. **Verify Upstash Redis URL Format**:
+
    ```bash
    # Check your Render environment variables
    # Correct format: redis://default:password@endpoint:port
    ```
 
 2. **Test Redis Connection**:
+
    ```bash
    # In Render shell, run:
    npm run test:redis
    ```
 
 3. **Update Redis Configuration**:
+
    - Ensure you're using the correct Upstash endpoint
    - Try switching between TLS and non-TLS endpoints
    - Check if your Upstash instance is active
 
 4. **Common Upstash Redis Issues**:
+
    - **Wrong URL format**: Must include `default` as username
    - **Expired instance**: Check Upstash dashboard for instance status
    - **Connection limits**: Upstash free tier has connection limits
    - **Region mismatch**: Use same region as your Render deployment
 
 5. **Immediate Fix**:
+
    ```bash
    # In Render dashboard, update REDIS_URL to:
    redis://default:YOUR_PASSWORD@YOUR_ENDPOINT.upstash.io:PORT
-   
+
    # Then redeploy the service
    ```
 
