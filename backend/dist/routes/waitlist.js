@@ -7,11 +7,11 @@ const router = (0, express_1.Router)();
 // All waitlist routes require authentication
 router.use(auth_1.requireAuth);
 // POST /api/events/:eventId/waitlist - Join event waitlist
-router.post('/:eventId/waitlist', waitlistController_1.joinWaitlist);
+router.post('/events/:eventId/waitlist', waitlistController_1.joinWaitlist);
 // DELETE /api/events/:eventId/waitlist - Leave event waitlist
-router.delete('/:eventId/waitlist', waitlistController_1.leaveWaitlist);
+router.delete('/events/:eventId/waitlist', waitlistController_1.leaveWaitlist);
 // GET /api/events/:eventId/waitlist - Get waitlist for event (admin only)
-router.get('/:eventId/waitlist', waitlistController_1.getEventWaitlist);
+router.get('/events/:eventId/waitlist', waitlistController_1.getEventWaitlist);
 // GET /api/users/:userId/waitlist - Get user's waitlist entries
 router.get('/users/:userId/waitlist', waitlistController_1.getUserWaitlist);
 // POST /api/admin/events/:eventId/waitlist/promote - Promote users from waitlist (admin only)

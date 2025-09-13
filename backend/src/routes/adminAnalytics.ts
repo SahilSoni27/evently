@@ -24,19 +24,19 @@ router.use((req, res, next) => {
   next();
 });
 
-// GET /api/admin/analytics/overview - Get high-level overview statistics
+// GET /api/admin/data/overview - Get high-level overview statistics
 router.get('/overview', getOverviewStats);
 
-// GET /api/admin/analytics/events - Get event performance analytics
+// GET /api/admin/data/events - Get event performance data
 router.get('/events', getEventAnalytics);
 
-// GET /api/admin/analytics/bookings - Get booking trends and analytics
+// GET /api/admin/data/bookings - Get booking trends and data
 router.get('/bookings', getBookingAnalytics);
 
-// GET /api/admin/analytics/users - Get user registration and activity analytics
+// GET /api/admin/data/users - Get user registration and activity data
 router.get('/users', getUserAnalytics);
 
-// GET /api/admin/analytics/revenue - Get revenue breakdown and trends
+// GET /api/admin/data/revenue - Get revenue breakdown and trends
 router.get('/revenue', getRevenueAnalytics);
 
 export default router;
