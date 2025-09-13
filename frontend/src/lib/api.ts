@@ -292,6 +292,63 @@ class ApiClient {
       };
     }>(`/api/events/${eventId}/waitlist`);
   }
+
+  async downloadTicket(bookingId: string): Promise<void> {
+    const url = `${this.baseURL}/api/tickets/${bookingId}/download`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied.');
+        } else if (response.status === 404) {
+          throw new Error('Ticket not found.');
+        }
+        throw new Error(`Failed to download ticket: ${response.statusText}`);
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      
+      // Try to get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `ticket-${bookingId}.pdf`;
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const apiClient = new ApiClient();

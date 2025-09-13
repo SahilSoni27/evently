@@ -1,30 +1,34 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { withAuth } from '@/components/hoc/withAuth';
-import { apiClient } from '@/lib/api';
-import { Booking } from '@/types';
-import { Navbar } from '@/components/Navbar';
-import Link from 'next/link';
-import { Calendar, MapPin, Users, CreditCard, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { withAuth } from "@/components/hoc/withAuth";
+import { apiClient } from "@/lib/api";
+import { Booking } from "@/types";
+import { Navbar } from "@/components/Navbar";
+import Link from "next/link";
+import { Calendar, MapPin, Users, CreditCard, AlertCircle } from "lucide-react";
 
 function BookingsPage() {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadBookings = async () => {
       if (!user?.id) return;
-      
+
       try {
         const response = await apiClient.getUserBookings(user.id);
-        const bookingsData = (response as any)?.data?.bookings || (response as any)?.bookings || [];
+        const bookingsData =
+          (response as any)?.data?.bookings ||
+          (response as any)?.bookings ||
+          [];
         setBookings(bookingsData);
       } catch (error) {
-        console.error('Failed to load bookings:', error);
+        console.error("Failed to load bookings:", error);
       } finally {
         setLoading(false);
       }
@@ -37,30 +41,45 @@ function BookingsPage() {
     try {
       setCancellingId(bookingId);
       await apiClient.cancelBooking(bookingId);
-      
+
       // Refresh bookings
       if (user?.id) {
         const response = await apiClient.getUserBookings(user.id);
-        const bookingsData = (response as any)?.data?.bookings || (response as any)?.bookings || [];
+        const bookingsData =
+          (response as any)?.data?.bookings ||
+          (response as any)?.bookings ||
+          [];
         setBookings(bookingsData);
       }
     } catch (error) {
-      console.error('Failed to cancel booking:', error);
-      alert('Failed to cancel booking. Please try again.');
+      console.error("Failed to cancel booking:", error);
+      alert("Failed to cancel booking. Please try again.");
     } finally {
       setCancellingId(null);
     }
   };
 
+  const handleDownloadTicket = async (bookingId: string) => {
+    try {
+      setDownloadingId(bookingId);
+      await apiClient.downloadTicket(bookingId);
+    } catch (error) {
+      console.error("Failed to download ticket:", error);
+      alert("Failed to download ticket. Please try again.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -70,14 +89,14 @@ function BookingsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
-        return 'bg-green-100 text-green-800';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
+      case "CONFIRMED":
+        return "bg-green-100 text-green-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -86,7 +105,9 @@ function BookingsPage() {
   };
 
   const canCancelBooking = (booking: Booking) => {
-    return booking.status === 'CONFIRMED' && !isEventPast(booking.event.startTime);
+    return (
+      booking.status === "CONFIRMED" && !isEventPast(booking.event.startTime)
+    );
   };
 
   if (loading) {
@@ -111,7 +132,9 @@ function BookingsPage() {
       <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-          <p className="text-gray-800 mt-2">View and manage your event bookings</p>
+          <p className="text-gray-800 mt-2">
+            View and manage your event bookings
+          </p>
         </div>
 
         {bookings.length > 0 ? (
@@ -130,10 +153,16 @@ function BookingsPage() {
                             {booking.event.name}
                           </h3>
                           <div className="flex items-center space-x-4 text-sm text-gray-800">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                                booking.status
+                              )}`}
+                            >
                               {booking.status}
                             </span>
-                            <span>Booking #{booking.id.slice(-8).toUpperCase()}</span>
+                            <span>
+                              Booking #{booking.id.slice(-8).toUpperCase()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -142,16 +171,22 @@ function BookingsPage() {
                         <div className="space-y-2">
                           <div className="flex items-center text-gray-800">
                             <Calendar className="h-4 w-4 mr-2" />
-                            <span className="text-sm">{formatDate(booking.event.startTime)}</span>
+                            <span className="text-sm">
+                              {formatDate(booking.event.startTime)}
+                            </span>
                           </div>
                           {booking.event.endTime && (
                             <div className="flex items-center text-gray-800 ml-6">
-                              <span className="text-xs">Ends: {formatDate(booking.event.endTime)}</span>
+                              <span className="text-xs">
+                                Ends: {formatDate(booking.event.endTime)}
+                              </span>
                             </div>
                           )}
                           <div className="flex items-center text-gray-800">
                             <MapPin className="h-4 w-4 mr-2" />
-                            <span className="text-sm">{booking.event.venue}</span>
+                            <span className="text-sm">
+                              {booking.event.venue}
+                            </span>
                           </div>
                         </div>
 
@@ -159,7 +194,8 @@ function BookingsPage() {
                           <div className="flex items-center text-gray-800">
                             <Users className="h-4 w-4 mr-2" />
                             <span className="text-sm">
-                              {booking.quantity} {booking.quantity === 1 ? 'ticket' : 'tickets'}
+                              {booking.quantity}{" "}
+                              {booking.quantity === 1 ? "ticket" : "tickets"}
                             </span>
                           </div>
                           <div className="flex items-center text-gray-800">
@@ -169,7 +205,8 @@ function BookingsPage() {
                             </span>
                           </div>
                           <div className="text-xs text-gray-700">
-                            Booked on {new Date(booking.createdAt).toLocaleDateString()}
+                            Booked on{" "}
+                            {new Date(booking.createdAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
@@ -177,7 +214,9 @@ function BookingsPage() {
                       {isEventPast(booking.event.startTime) && (
                         <div className="flex items-center p-3 bg-gray-50 rounded-md mb-4">
                           <AlertCircle className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-800">This event has already occurred</span>
+                          <span className="text-sm text-gray-800">
+                            This event has already occurred
+                          </span>
                         </div>
                       )}
                     </div>
@@ -189,24 +228,33 @@ function BookingsPage() {
                       >
                         View Event
                       </Link>
-                      
+
                       <button
-                        onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/tickets/${booking.id}/download`, '_blank')}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                        onClick={() => handleDownloadTicket(booking.id)}
+                        disabled={downloadingId === booking.id}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        📱 Download Ticket
+                        {downloadingId === booking.id
+                          ? "Downloading..."
+                          : "📱 Download Ticket"}
                       </button>
                       {canCancelBooking(booking) && (
                         <button
                           onClick={() => {
-                            if (window.confirm('Are you sure you want to cancel this booking? A cancellation fee may apply.')) {
+                            if (
+                              window.confirm(
+                                "Are you sure you want to cancel this booking? A cancellation fee may apply."
+                              )
+                            ) {
                               handleCancelBooking(booking.id);
                             }
                           }}
                           disabled={cancellingId === booking.id}
                           className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
                         >
-                          {cancellingId === booking.id ? 'Cancelling...' : 'Cancel Booking'}
+                          {cancellingId === booking.id
+                            ? "Cancelling..."
+                            : "Cancel Booking"}
                         </button>
                       )}
                     </div>
@@ -218,7 +266,9 @@ function BookingsPage() {
         ) : (
           <div className="text-center py-12">
             <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No bookings yet
+            </h3>
             <p className="text-gray-600 mb-6">
               Start exploring events and make your first booking!
             </p>
