@@ -7,21 +7,26 @@ This directory contains essential documentation for the Evently event booking pl
 ## 📋 Documentation Index
 
 ### 🏁 Quick Start
+
 - **[SETUP.md](./SETUP.md)** - Complete setup guide for development environment
 - **[ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)** - Detailed environment configuration
 
 ### 🏗️ System Design
+
 - **[TECH_STACK.md](./TECH_STACK.md)** - Complete technology stack overview and rationale
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and component design
 - **[SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md)** - High-level system design patterns
 
 ### 💾 Database
+
 - **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** - Database schema and relationships
 
 ### 🚀 Deployment
+
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide
 
 ### 📡 API Reference
+
 - **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - ⭐ **NEW** - Complete API documentation with examples
 - **[api-docs.yaml](./api-docs.yaml)** - OpenAPI specification for REST endpoints
 

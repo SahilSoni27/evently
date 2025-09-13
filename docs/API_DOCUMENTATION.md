@@ -18,6 +18,7 @@ Authorization: Bearer <your-jwt-token>
 ### Authentication Endpoints
 
 #### Register User
+
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -30,6 +31,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -47,6 +49,7 @@ Content-Type: application/json
 ```
 
 #### Login User
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -58,6 +61,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -75,6 +79,7 @@ Content-Type: application/json
 ```
 
 #### Get User Profile
+
 ```http
 GET /api/auth/profile
 Authorization: Bearer <token>
@@ -83,11 +88,13 @@ Authorization: Bearer <token>
 ## Event Management
 
 ### List Events
+
 ```http
 GET /api/events?page=1&limit=10&search=conference&sortBy=startTime&sortOrder=asc
 ```
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 10, max: 100)
 - `search` (optional): Search in event name, description, venue
@@ -95,6 +102,7 @@ GET /api/events?page=1&limit=10&search=conference&sortBy=startTime&sortOrder=asc
 - `sortOrder` (optional): asc or desc
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -129,11 +137,13 @@ GET /api/events?page=1&limit=10&search=conference&sortBy=startTime&sortOrder=asc
 ```
 
 ### Get Single Event
+
 ```http
 GET /api/events/{eventId}
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -165,6 +175,7 @@ GET /api/events/{eventId}
 ```
 
 ### Create Event (Admin Only)
+
 ```http
 POST /api/events
 Authorization: Bearer <admin-token>
@@ -185,6 +196,7 @@ Content-Type: application/json
 ```
 
 ### Update Event (Admin Only)
+
 ```http
 PUT /api/events/{eventId}
 Authorization: Bearer <admin-token>
@@ -198,6 +210,7 @@ Content-Type: application/json
 ```
 
 ### Delete Event (Admin Only)
+
 ```http
 DELETE /api/events/{eventId}
 Authorization: Bearer <admin-token>
@@ -206,6 +219,7 @@ Authorization: Bearer <admin-token>
 ## Booking Management
 
 ### Create Booking
+
 ```http
 POST /api/bookings
 Authorization: Bearer <token>
@@ -219,6 +233,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -264,12 +279,14 @@ Content-Type: application/json
 ```
 
 ### Get User Bookings
+
 ```http
 GET /api/bookings/user/{userId}
 Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -300,12 +317,14 @@ Authorization: Bearer <token>
 ```
 
 ### Cancel Booking
+
 ```http
 DELETE /api/bookings/{bookingId}
 Authorization: Bearer <token>
 ```
 
 ### Get All Bookings (Admin Only)
+
 ```http
 GET /api/bookings?page=1&limit=20&status=CONFIRMED
 Authorization: Bearer <admin-token>
@@ -314,12 +333,14 @@ Authorization: Bearer <admin-token>
 ## Waitlist Management
 
 ### Join Event Waitlist
+
 ```http
 POST /api/events/{eventId}/waitlist
 Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -337,18 +358,21 @@ Authorization: Bearer <token>
 ```
 
 ### Leave Waitlist
+
 ```http
 DELETE /api/events/{eventId}/waitlist
 Authorization: Bearer <token>
 ```
 
 ### Get User Waitlist
+
 ```http
 GET /api/users/{userId}/waitlist
 Authorization: Bearer <token>
 ```
 
 ### Get Event Waitlist (Admin Only)
+
 ```http
 GET /api/events/{eventId}/waitlist
 Authorization: Bearer <admin-token>
@@ -357,6 +381,7 @@ Authorization: Bearer <admin-token>
 ## Ticket Management
 
 ### Download Ticket PDF
+
 ```http
 GET /api/tickets/{bookingId}/download
 Authorization: Bearer <token>
@@ -365,6 +390,7 @@ Authorization: Bearer <token>
 **Response:** PDF file download
 
 ### Get QR Code
+
 ```http
 GET /api/tickets/{bookingId}/qr
 Authorization: Bearer <token>
@@ -373,12 +399,14 @@ Authorization: Bearer <token>
 **Response:** PNG image of QR code
 
 ### Get Ticket Details
+
 ```http
 GET /api/tickets/{bookingId}/details
 Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -398,12 +426,14 @@ Authorization: Bearer <token>
 ```
 
 ### Verify Ticket (Admin/Staff)
+
 ```http
 GET /api/tickets/verify/{bookingId}
 Authorization: Bearer <token>
 ```
 
 ### Check-in Ticket (Admin/Staff)
+
 ```http
 POST /api/tickets/checkin/{bookingId}
 Authorization: Bearer <token>
@@ -412,12 +442,14 @@ Authorization: Bearer <token>
 ## Admin Analytics
 
 ### Get Overview Statistics
+
 ```http
 GET /api/admin/data/overview
 Authorization: Bearer <admin-token>
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -427,7 +459,7 @@ Authorization: Bearer <admin-token>
     "totalUsers": 450,
     "activeEvents": 5,
     "upcomingEvents": 12,
-    "totalRevenue": 125000.50,
+    "totalRevenue": 125000.5,
     "recentBookings": 45,
     "totalWaitlists": 89
   }
@@ -435,24 +467,28 @@ Authorization: Bearer <admin-token>
 ```
 
 ### Get Event Analytics
+
 ```http
 GET /api/admin/data/events?timeframe=30d&limit=50
 Authorization: Bearer <admin-token>
 ```
 
 ### Get Booking Analytics
+
 ```http
 GET /api/admin/data/bookings?timeframe=7d
 Authorization: Bearer <admin-token>
 ```
 
 ### Get User Analytics
+
 ```http
 GET /api/admin/data/users?timeframe=90d
 Authorization: Bearer <admin-token>
 ```
 
 ### Get Revenue Analytics
+
 ```http
 GET /api/admin/data/revenue?timeframe=30d
 Authorization: Bearer <admin-token>
@@ -461,6 +497,7 @@ Authorization: Bearer <admin-token>
 ## Notification Management
 
 ### Subscribe to Push Notifications
+
 ```http
 POST /api/notifications/subscribe
 Authorization: Bearer <token>
@@ -476,17 +513,20 @@ Content-Type: application/json
 ```
 
 ### Get VAPID Public Key
+
 ```http
 GET /api/notifications/vapid-key
 ```
 
 ### Get User Notifications
+
 ```http
 GET /api/notifications/user/{userId}
 Authorization: Bearer <token>
 ```
 
 ### Mark Notification as Read
+
 ```http
 POST /api/notifications/mark-read/{notificationId}
 Authorization: Bearer <token>
@@ -495,21 +535,25 @@ Authorization: Bearer <token>
 ## Search & Discovery
 
 ### Search Events
+
 ```http
 GET /api/search?q=conference&category=CONFERENCE&venue=downtown&date_from=2025-03-01&date_to=2025-03-31
 ```
 
 ### Get Search Suggestions
+
 ```http
 GET /api/search/suggestions?q=tech
 ```
 
 ### Get Popular Searches
+
 ```http
 GET /api/search/popular
 ```
 
 ### Get Upcoming Events
+
 ```http
 GET /api/search/upcoming?limit=5
 ```
@@ -530,6 +574,7 @@ All endpoints return consistent error responses:
 ```
 
 **Common HTTP Status Codes:**
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request (validation errors)
@@ -550,6 +595,7 @@ API endpoints are rate-limited to prevent abuse:
 - **Search endpoints**: 50 requests per minute per IP
 
 Rate limit headers are included in responses:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -569,16 +615,17 @@ For real-time integrations, Evently supports webhooks for key events:
 ## SDK & Libraries
 
 ### JavaScript/TypeScript
+
 ```bash
 npm install @evently/api-client
 ```
 
 ```javascript
-import { EventlyClient } from '@evently/api-client';
+import { EventlyClient } from "@evently/api-client";
 
 const client = new EventlyClient({
-  baseUrl: 'https://api.evently.com',
-  apiKey: 'your-api-key'
+  baseUrl: "https://api.evently.com",
+  apiKey: "your-api-key",
 });
 
 // Get events
@@ -586,19 +633,21 @@ const events = await client.events.list();
 
 // Create booking
 const booking = await client.bookings.create({
-  eventId: 'clxyz789...',
-  quantity: 2
+  eventId: "clxyz789...",
+  quantity: 2,
 });
 ```
 
 ## Testing
 
 ### Health Check
+
 ```http
 GET /api/health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -609,6 +658,7 @@ GET /api/health
 ```
 
 ### Test Endpoint
+
 ```http
 GET /api/test
 ```
@@ -616,6 +666,7 @@ GET /api/test
 ## Changelog
 
 ### v1.0.0 (Current)
+
 - Initial API release
 - Authentication & user management
 - Event CRUD operations
@@ -628,7 +679,8 @@ GET /api/test
 
 ---
 
-**Need Help?**  
+**Need Help?**
+
 - API Documentation: `/api-docs` (Swagger UI)
 - Support: support@evently.com
 - GitHub Issues: [Repository Issues](https://github.com/SahilSoni27/evently/issues)

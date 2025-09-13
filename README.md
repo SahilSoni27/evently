@@ -199,36 +199,43 @@ NEXT_PUBLIC_VAPID_KEY=your-vapid-public-key
 ## 📚 Core API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/me` - Get current user
 
 ### Events
+
 - `GET /api/events` - List all events
 - `POST /api/events` - Create event (Admin)
 - `GET /api/events/:id` - Event details
 
 ### Bookings
+
 - `POST /api/bookings` - Create booking
 - `GET /api/bookings/my` - User bookings
 - `DELETE /api/bookings/:id` - Cancel booking
 
 ### Waitlist
+
 - `POST /api/waitlist/join/:eventId` - Join waitlist
 - `GET /api/waitlist/user/:userId` - Waitlist status
 
 ### Tickets
+
 - `GET /api/tickets/:bookingId/download` - Download PDF ticket
 
 ## 🔑 Technical Implementation
 
 ### Concurrency Handling
+
 - **Database Transactions**: Atomic booking operations preventing race conditions
 - **Optimistic Locking**: Version-based conflict resolution
 - **Queue Processing**: BullMQ manages high-volume concurrent requests
 - **Rate Limiting**: API protection against abuse
 
 ### Scalability Features
+
 - **Connection Pooling**: Efficient database resource management
 - **Redis Caching**: Fast data retrieval and session storage
 - **Background Jobs**: Non-blocking email and notification processing

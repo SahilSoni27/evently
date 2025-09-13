@@ -24,8 +24,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 ## Frontend Technologies
 
 ### Next.js 15.5.2
+
 **Purpose**: React-based full-stack framework
 **Why Chosen**:
+
 - **Server-Side Rendering (SSR)**: Improved SEO and initial page load performance
 - **App Router**: Modern routing system with layouts and nested routes
 - **API Routes**: Built-in API endpoints without separate backend setup
@@ -34,14 +36,17 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Performance**: Built-in performance optimizations and Core Web Vitals tracking
 
 **Advantages over alternatives**:
+
 - More feature-complete than Create React App
 - Better performance than traditional SPAs
 - Simplified deployment compared to separate React + Express setup
 - Built-in optimization features vs manual configuration
 
 ### React 19.1.0
+
 **Purpose**: UI library for building interactive user interfaces
 **Why Chosen**:
+
 - **Component-Based**: Reusable and maintainable UI components
 - **Virtual DOM**: Efficient DOM updates and rendering
 - **Hooks**: Modern state management and lifecycle methods
@@ -49,8 +54,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Developer Experience**: Excellent debugging tools and community support
 
 ### TypeScript 5.x
+
 **Purpose**: Static type checking for JavaScript
 **Why Chosen**:
+
 - **Type Safety**: Catch errors at compile time rather than runtime
 - **Better IDE Support**: Enhanced autocomplete and refactoring
 - **Code Documentation**: Types serve as living documentation
@@ -58,8 +65,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Team Collaboration**: Clear interfaces and contracts between components
 
 ### Tailwind CSS 4.x
+
 **Purpose**: Utility-first CSS framework
 **Why Chosen**:
+
 - **Rapid Development**: Build UIs quickly with utility classes
 - **Consistency**: Design system built into the framework
 - **Performance**: Only CSS that's actually used is included in build
@@ -67,14 +76,17 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Responsive Design**: Mobile-first responsive utilities
 
 **Advantages over alternatives**:
+
 - Faster than writing custom CSS
 - More maintainable than CSS-in-JS solutions
 - Smaller bundle size compared to component libraries like Material-UI
 - Better performance than CSS frameworks like Bootstrap
 
 ### Framer Motion 12.x
+
 **Purpose**: Animation library for React
 **Why Chosen**:
+
 - **Declarative Animations**: Easy-to-use animation API
 - **Performance**: Hardware-accelerated animations
 - **Gesture Support**: Built-in drag, hover, and tap gestures
@@ -82,8 +94,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Spring Physics**: Natural-feeling animations
 
 ### Lucide React
+
 **Purpose**: Icon library
 **Why Chosen**:
+
 - **Consistent Design**: Cohesive icon set
 - **Tree Shaking**: Only import icons you use
 - **Customizable**: Easy to style and resize
@@ -93,8 +107,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 ## Backend Technologies
 
 ### Node.js with Express 5.x
+
 **Purpose**: Server-side JavaScript runtime and web framework
 **Why Chosen**:
+
 - **JavaScript Everywhere**: Same language for frontend and backend
 - **Performance**: Non-blocking I/O and event-driven architecture
 - **NPM Ecosystem**: Largest package ecosystem
@@ -102,8 +118,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Community**: Large community and extensive documentation
 
 ### Prisma 6.x
+
 **Purpose**: Database ORM and query builder
 **Why Chosen**:
+
 - **Type Safety**: Auto-generated TypeScript types from schema
 - **Database Migrations**: Version-controlled database changes
 - **Query Performance**: Optimized queries and connection pooling
@@ -111,14 +129,17 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Multi-Database**: Support for PostgreSQL, MySQL, SQLite, etc.
 
 **Advantages over alternatives**:
+
 - More type-safe than raw SQL or traditional ORMs
 - Better performance than Sequelize
 - Simpler than TypeORM for most use cases
 - Excellent migration system vs manual database management
 
-### Redis 
+### Redis
+
 **Purpose**: In-memory data structure store (Cache & Session Management)
 **Why Chosen**:
+
 - **Performance**: Sub-millisecond response times
 - **Scalability**: Handle millions of requests per second
 - **Data Structures**: Rich data types (strings, hashes, lists, sets)
@@ -126,8 +147,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Pub/Sub**: Built-in message broker capabilities
 
 ### BullMQ 5.x
+
 **Purpose**: Job queue system for background processing
 **Why Chosen**:
+
 - **Redis-Based**: Leverages Redis for speed and reliability
 - **Advanced Features**: Job scheduling, retries, priorities, rate limiting
 - **Observability**: Built-in job monitoring and metrics
@@ -135,8 +158,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **TypeScript**: First-class TypeScript support
 
 ### JWT (JSON Web Tokens)
+
 **Purpose**: Authentication and authorization
 **Why Chosen**:
+
 - **Stateless**: No server-side session storage required
 - **Scalable**: Works well in distributed systems
 - **Standards-Based**: Industry standard for token-based auth
@@ -146,8 +171,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 ## Database
 
 ### PostgreSQL
+
 **Purpose**: Primary relational database
 **Why Chosen**:
+
 - **ACID Compliance**: Reliable transactions and data integrity
 - **Performance**: Excellent performance for complex queries
 - **Features**: Advanced features like JSON support, full-text search
@@ -155,6 +182,7 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Open Source**: No licensing costs and active community
 
 **Advantages over alternatives**:
+
 - More feature-rich than MySQL
 - Better performance than SQLite for production workloads
 - More cost-effective than commercial databases
@@ -163,8 +191,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 ## Development & DevOps
 
 ### Docker & Docker Compose
+
 **Purpose**: Containerization and local development environment
 **Why Chosen**:
+
 - **Consistency**: Same environment across development, testing, and production
 - **Isolation**: Isolated dependencies and services
 - **Scalability**: Easy to scale services horizontally
@@ -172,8 +202,10 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 - **Development**: Quick setup of complex development environments
 
 ### pnpm
+
 **Purpose**: Package manager
 **Why Chosen**:
+
 - **Speed**: Faster than npm and yarn
 - **Disk Space**: Efficient storage with hard links
 - **Security**: Better security than npm
@@ -183,32 +215,40 @@ Evently is a modern, full-stack event management platform built with cutting-edg
 ## Additional Libraries & Tools
 
 ### Zod 4.x
+
 **Purpose**: Runtime type validation
 **Why Chosen**:
+
 - **Type Safety**: Runtime validation with TypeScript inference
 - **API Validation**: Validate incoming requests and responses
 - **Error Handling**: Detailed validation error messages
 - **Performance**: Fast validation with minimal overhead
 
 ### Nodemailer 7.x
+
 **Purpose**: Email sending
 **Why Chosen**:
+
 - **Flexibility**: Support for multiple email services
 - **Features**: HTML emails, attachments, templates
 - **Reliability**: Robust error handling and retry logic
 - **Standards**: Full SMTP support
 
 ### Helmet 8.x
+
 **Purpose**: Security middleware
 **Why Chosen**:
+
 - **Security Headers**: Automatically sets security-related headers
 - **Best Practices**: Implements security best practices by default
 - **Customizable**: Easy to configure for specific needs
 - **Performance**: Minimal performance overhead
 
 ### Morgan
+
 **Purpose**: HTTP request logging
 **Why Chosen**:
+
 - **Debugging**: Essential for debugging API issues
 - **Monitoring**: Track request patterns and performance
 - **Customizable**: Flexible log formats

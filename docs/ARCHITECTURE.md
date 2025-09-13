@@ -24,6 +24,7 @@ Evently is a modern, scalable event booking platform built with a microservices-
 ## Core Components
 
 ### 🎨 Frontend (Next.js 15)
+
 - **App Router**: Modern routing with layouts and nested routes
 - **Server Components**: Improved performance with RSC
 - **TypeScript**: Full type safety across the application
@@ -31,6 +32,7 @@ Evently is a modern, scalable event booking platform built with a microservices-
 - **Framer Motion**: Smooth animations and transitions
 
 ### 🚀 Backend (Node.js + Express)
+
 - **RESTful API**: Standard HTTP API endpoints
 - **TypeScript**: Type-safe server-side development
 - **Prisma ORM**: Type-safe database operations
@@ -38,11 +40,13 @@ Evently is a modern, scalable event booking platform built with a microservices-
 - **Rate Limiting**: API protection and abuse prevention
 
 ### 💾 Data Layer
+
 - **PostgreSQL**: Primary relational database
 - **Redis**: Caching and session management
 - **Prisma Schema**: Database modeling and migrations
 
 ### 🔄 Background Processing
+
 - **BullMQ**: Job queue for async operations
 - **Email Queue**: Automated email notifications
 - **Notification Queue**: Push notification delivery
@@ -50,6 +54,7 @@ Evently is a modern, scalable event booking platform built with a microservices-
 ## Request Flow
 
 ### Typical Booking Request Flow
+
 ```
 User → Frontend → API Gateway → Backend → Database
      ← Frontend ← Response   ← Backend ← Database
@@ -63,6 +68,7 @@ User → Frontend → API Gateway → Backend → Database
 ```
 
 ### Background Job Processing
+
 ```
 API Request → Redis Queue → BullMQ Worker → Email/SMS/Push
                         → Job Results → Monitoring
@@ -71,24 +77,28 @@ API Request → Redis Queue → BullMQ Worker → Email/SMS/Push
 ## Key Architectural Patterns
 
 ### 1. Concurrency Safety
+
 - **Optimistic Locking**: Version-based conflict resolution
 - **Database Transactions**: ACID compliance for bookings
 - **Redis Locking**: Distributed locks for critical sections
 - **Queue Processing**: Async operations to avoid blocking
 
 ### 2. Scalability Patterns
+
 - **Stateless Design**: No server-side session storage
 - **Horizontal Scaling**: Multiple backend instances
 - **Database Pooling**: Efficient connection management
 - **Caching Strategy**: Redis for frequently accessed data
 
 ### 3. Security Patterns
+
 - **JWT Authentication**: Stateless token-based auth
 - **Role-Based Access**: Admin/User permission separation
 - **Input Validation**: Zod schemas for all endpoints
 - **Rate Limiting**: API abuse prevention
 
 ### 4. Reliability Patterns
+
 - **Health Checks**: Service monitoring endpoints
 - **Graceful Degradation**: Fallbacks for external services
 - **Circuit Breakers**: Failure isolation
@@ -97,18 +107,21 @@ API Request → Redis Queue → BullMQ Worker → Email/SMS/Push
 ## Performance Considerations
 
 ### Database Optimization
+
 - **Indexes**: Optimized queries for booking operations
 - **Connection Pooling**: Efficient resource utilization
 - **Query Optimization**: Minimal N+1 queries
 - **Read Replicas**: Scaling read operations
 
 ### Caching Strategy
+
 - **Application Cache**: Frequently accessed data in Redis
 - **Query Result Cache**: Database query caching
 - **Session Storage**: Redis-based session management
 - **CDN Integration**: Static asset delivery
 
 ### Background Processing
+
 - **Job Queues**: Non-blocking operations
 - **Worker Scaling**: Multiple job processors
 - **Priority Queues**: Critical jobs first
@@ -117,12 +130,14 @@ API Request → Redis Queue → BullMQ Worker → Email/SMS/Push
 ## Monitoring & Observability
 
 ### Application Metrics
+
 - Request/response times and status codes
 - Database query performance
 - Job queue processing rates
 - Error rates and types
 
 ### Business Metrics
+
 - Booking conversion rates
 - User engagement metrics
 - Revenue tracking
