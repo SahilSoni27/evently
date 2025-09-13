@@ -128,8 +128,8 @@ async function main() {
   });
   console.log('✅ Created AI Workshop');
 
-  const events = [event1, event2, event3, event4, event5];
-  console.log('✅ Created 5 events with images');
+  const events = [event1, event2, event3, event4, event5, event6];
+  console.log('✅ Created 6 events with images');
 
   // Generate seats for events with seatLevelBooking enabled
   console.log('Generating seats for seat-level booking events...');
@@ -207,12 +207,13 @@ async function main() {
   console.log('');
   console.log('📊 Summary:');
   console.log('👤 Created 3 users (1 admin, 2 regular)');
-  console.log('🎪 Created 5 events with images:');
+  console.log('🎪 Created 6 events with images:');
   console.log('   • Tech Conference 2025 (Regular booking, 500 capacity)');
   console.log('   • Summer Music Festival (Regular booking, 10,000 capacity)');
   console.log('   • Theater Show - BookMyShow Style (Seat selection, 100 seats)');
   console.log('   • Food & Wine Expo (Regular booking, 300 capacity)');
   console.log('   • AI Workshop - Premium Seating (Seat selection, 50 seats)');
+  console.log('   • PDEU Sports Championship (Regular booking, 2,000 capacity)');
   console.log('🎟️ Created 2 sample bookings');
   console.log('🪑 Generated individual seats for 2 seat-level events');
   console.log('');

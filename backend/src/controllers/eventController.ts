@@ -273,6 +273,9 @@ export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
   if (updateData.description !== undefined) updatePayload.description = updateData.description;
   if (updateData.venue) updatePayload.venue = updateData.venue;
   if (updateData.price !== undefined) updatePayload.price = updateData.price;
+  if (updateData.category) updatePayload.category = updateData.category;
+  if (updateData.tags !== undefined) updatePayload.tags = updateData.tags;
+  if (updateData.imageUrl !== undefined) updatePayload.imageUrl = updateData.imageUrl;
 
   // Handle date updates
   if (updateData.startTime) {
@@ -316,6 +319,9 @@ export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
       capacity: true,
       availableCapacity: true,
       price: true,
+      category: true,
+      tags: true,
+      imageUrl: true,
       updatedAt: true
     }
   });
