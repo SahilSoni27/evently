@@ -140,10 +140,10 @@ app.use('/api/events', events_1.default);
 app.use('/api/bookings', bookings_1.default);
 app.use('/api/payments', payments_1.default);
 app.use('/api/seats', seats_1.default);
-app.use('/api/admin/analytics', adminAnalytics_1.default);
+app.use('/api/admin/data', adminAnalytics_1.default);
 app.use('/api/admin', adminDashboard_1.default);
 app.use('/api/admin/queues', queueManagement_1.default);
-app.use('/api/waitlist', waitlist_1.default);
+app.use('/api', waitlist_1.default);
 app.use('/api/tickets', tickets_1.default);
 app.use('/api/notifications', notifications_1.default);
 app.use('/api/search', search_1.default);
@@ -162,10 +162,14 @@ app.use(errorHandler_1.notFound);
 // Global error handler (must be last)
 app.use(errorHandler_1.errorHandler);
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`� Health check: http://localhost:${PORT}/health`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`� Analytics: http://localhost:${PORT}/api/admin/analytics/overview`);
+    console.log(`📊 Admin Data: http://localhost:${PORT}/api/admin/data/overview`);
 });
+// Configure server timeouts to prevent ECONNRESET errors
+server.timeout = 60000; // 60 seconds
+server.keepAliveTimeout = 65000; // 65 seconds (should be greater than timeout)
+server.headersTimeout = 66000; // 66 seconds (should be greater than keepAliveTimeout)
 module.exports = app;

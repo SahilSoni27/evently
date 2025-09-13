@@ -145,10 +145,10 @@ function AdminPage() {
                   View All Bookings
                 </Link>
                 <Link
-                  href="/admin/analytics"
+                  href="/admin/advanced-analytics"
                   className="block w-full bg-orange-600 text-white text-center py-3 px-4 rounded-md hover:bg-orange-700 transition-colors"
                 >
-                  Detailed Analytics
+                  Advanced Analytics
                 </Link>
               </div>
             </div>

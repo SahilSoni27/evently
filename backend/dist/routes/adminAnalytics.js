@@ -16,14 +16,14 @@ router.use((req, res, next) => {
     }
     next();
 });
-// GET /api/admin/analytics/overview - Get high-level overview statistics
+// GET /api/admin/data/overview - Get high-level overview statistics
 router.get('/overview', adminAnalyticsController_1.getOverviewStats);
-// GET /api/admin/analytics/events - Get event performance analytics
+// GET /api/admin/data/events - Get event performance data
 router.get('/events', adminAnalyticsController_1.getEventAnalytics);
-// GET /api/admin/analytics/bookings - Get booking trends and analytics
+// GET /api/admin/data/bookings - Get booking trends and data
 router.get('/bookings', adminAnalyticsController_1.getBookingAnalytics);
-// GET /api/admin/analytics/users - Get user registration and activity analytics
+// GET /api/admin/data/users - Get user registration and activity data
 router.get('/users', adminAnalyticsController_1.getUserAnalytics);
-// GET /api/admin/analytics/revenue - Get revenue breakdown and trends
+// GET /api/admin/data/revenue - Get revenue breakdown and trends
 router.get('/revenue', adminAnalyticsController_1.getRevenueAnalytics);
 exports.default = router;

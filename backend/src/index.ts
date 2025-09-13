@@ -116,7 +116,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/seats', seatRoutes);
-app.use('/api/admin/analytics', adminAnalyticsRoutes);
+app.use('/api/admin/data', adminAnalyticsRoutes);
 app.use('/api/admin', adminDashboardRoutes);
 app.use('/api/admin/queues', queueManagementRoutes);
 app.use('/api', waitlistRoutes);
@@ -148,7 +148,7 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`� Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`� Analytics: http://localhost:${PORT}/api/admin/analytics/overview`);
+  console.log(`📊 Admin Data: http://localhost:${PORT}/api/admin/data/overview`);
 });
 
 // Configure server timeouts to prevent ECONNRESET errors
