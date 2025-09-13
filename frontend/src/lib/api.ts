@@ -20,17 +20,23 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Create an AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...this.getAuthHeader(),
         ...options.headers,
       },
+      signal: controller.signal,
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
+      clearTimeout(timeoutId); // Clear timeout on successful response
       
       if (!response.ok) {
         // Handle different HTTP status codes
@@ -56,7 +62,16 @@ class ApiClient {
       
       const data = await response.json();
       return data;
-    } catch (error) {
+    } catch (error: any) {
+      clearTimeout(timeoutId); // Clear timeout on error
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout. Please try again.');
+      } else if (error.message?.includes('ECONNRESET') || error.message?.includes('network')) {
+        throw new Error('Network connection error. Please check your connection and try again.');
+      }
+      
       console.error('API request failed:', error);
       throw error;
     }
@@ -207,6 +222,75 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data)
     });
+  }
+
+  async checkBookingStatus(jobId: string) {
+    return this.request(`/api/seats/booking-status/${jobId}`);
+  }
+
+  // Waitlist Management
+  async getUserWaitlist(userId: string) {
+    return this.request<{
+      status: string;
+      data: {
+        waitlistEntries: Array<{
+          id: string;
+          position: number;
+          status: 'ACTIVE' | 'NOTIFIED' | 'PROMOTED';
+          event: {
+            id: string;
+            name: string;
+            startTime: string;
+            venue: string;
+          };
+        }>;
+      };
+    }>(`/api/waitlist/users/${userId}`);
+  }
+
+  async joinWaitlist(eventId: string) {
+    return this.request<{
+      status: string;
+      message: string;
+      data: {
+        waitlistEntry: {
+          id: string;
+          position: number;
+          status: 'ACTIVE';
+          eventId: string;
+        };
+      };
+    }>(`/api/events/${eventId}/waitlist`, {
+      method: 'POST'
+    });
+  }
+
+  async leaveWaitlist(eventId: string) {
+    return this.request<{
+      status: string;
+      message: string;
+    }>(`/api/events/${eventId}/waitlist`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getEventWaitlist(eventId: string) {
+    return this.request<{
+      status: string;
+      data: {
+        waitlistCount: number;
+        entries: Array<{
+          id: string;
+          position: number;
+          status: 'ACTIVE' | 'NOTIFIED' | 'PROMOTED';
+          user: {
+            id: string;
+            name: string;
+            email: string;
+          };
+        }>;
+      };
+    }>(`/api/events/${eventId}/waitlist`);
   }
 }
 

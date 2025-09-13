@@ -14,13 +14,13 @@ const router = Router();
 router.use(requireAuth);
 
 // POST /api/events/:eventId/waitlist - Join event waitlist
-router.post('/:eventId/waitlist', joinWaitlist);
+router.post('/events/:eventId/waitlist', joinWaitlist);
 
 // DELETE /api/events/:eventId/waitlist - Leave event waitlist
-router.delete('/:eventId/waitlist', leaveWaitlist);
+router.delete('/events/:eventId/waitlist', leaveWaitlist);
 
 // GET /api/events/:eventId/waitlist - Get waitlist for event (admin only)
-router.get('/:eventId/waitlist', getEventWaitlist);
+router.get('/events/:eventId/waitlist', getEventWaitlist);
 
 // GET /api/users/:userId/waitlist - Get user's waitlist entries
 router.get('/users/:userId/waitlist', getUserWaitlist);

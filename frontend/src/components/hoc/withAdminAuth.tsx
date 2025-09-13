@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, ComponentType } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, ComponentType } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function withAdminAuth<P extends object>(Component: ComponentType<P>) {
   return function AdminProtectedComponent(props: P) {
@@ -12,9 +12,9 @@ export function withAdminAuth<P extends object>(Component: ComponentType<P>) {
     useEffect(() => {
       if (!loading) {
         if (!user) {
-          router.push('/login');
-        } else if (user.role !== 'ADMIN') {
-          router.push('/dashboard');
+          router.push("/login");
+        } else if (user.role !== "ADMIN") {
+          router.push("/events");
         }
       }
     }, [user, loading, router]);
@@ -30,7 +30,7 @@ export function withAdminAuth<P extends object>(Component: ComponentType<P>) {
       );
     }
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || user.role !== "ADMIN") {
       return null;
     }
 
