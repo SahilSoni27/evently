@@ -68,7 +68,7 @@ export const getSeatBookingResult = async (jobId: string): Promise<SeatBookingRe
   // Job is still processing
   return {
     success: false,
-    message: 'Booking is being processed...'
+    message: 'Booking is under processing...'
   };
 };
 
@@ -278,6 +278,8 @@ async function processSeatBooking(
     });
     
     return newBooking;
+  }, {
+    timeout: 500000 // 500 seconds timeout
   });
   
   console.log(`✅ Seat booking created: ${booking.id} for user ${userId}`);

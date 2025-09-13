@@ -199,10 +199,10 @@ export default function EventDetailPage() {
                 }
 
                 // Still processing, wait and retry
-                await new Promise((resolve) => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 200));
               } catch (error) {
                 console.error("Error checking booking status:", error);
-                await new Promise((resolve) => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 200));
               }
             }
 
@@ -213,7 +213,6 @@ export default function EventDetailPage() {
             );
             return false;
           };
-
           await pollBookingStatus(jobId);
         }
       } else {
