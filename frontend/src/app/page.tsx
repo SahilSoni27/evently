@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import Link from 'next/link';
-import { Calendar, Users, CreditCard, Shield } from 'lucide-react';
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import Link from "next/link";
+import { Calendar, Users, CreditCard, Shield } from "lucide-react";
 
 export default function Home() {
   const { isAuthenticated, loading } = useAuth();
@@ -12,7 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/dashboard');
+      router.push("/events");
     }
   }, [isAuthenticated, loading, router]);
 
@@ -64,8 +64,9 @@ export default function Home() {
             <span className="block text-blue-600">Confidence</span>
           </h2>
           <p className="text-xl text-gray-800 mb-8 max-w-3xl mx-auto">
-            Create, manage, and track your events seamlessly. From small gatherings to large conferences, 
-            Evently provides all the tools you need to make your events successful.
+            Create, manage, and track your events seamlessly. From small
+            gatherings to large conferences, Evently provides all the tools you
+            need to make your events successful.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -91,33 +92,45 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Calendar className="h-12 w-12 text-blue-600 mb-4" />
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">Event Management</h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                Event Management
+              </h4>
               <p className="text-gray-800">
-                Create and manage events with ease. Set dates, venues, pricing, and capacity limits.
+                Create and manage events with ease. Set dates, venues, pricing,
+                and capacity limits.
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Users className="h-12 w-12 text-green-600 mb-4" />
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">Booking System</h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                Booking System
+              </h4>
               <p className="text-gray-800">
-                Accept bookings online with real-time availability and automatic confirmations.
+                Accept bookings online with real-time availability and automatic
+                confirmations.
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <CreditCard className="h-12 w-12 text-purple-600 mb-4" />
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">Payment Processing</h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                Payment Processing
+              </h4>
               <p className="text-gray-800">
-                Secure payment processing with support for refunds and payment tracking.
+                Secure payment processing with support for refunds and payment
+                tracking.
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <Shield className="h-12 w-12 text-orange-600 mb-4" />
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">Admin Dashboard</h4>
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                Admin Dashboard
+              </h4>
               <p className="text-gray-800">
-                Powerful analytics and insights to track your event performance and revenue.
+                Powerful analytics and insights to track your event performance
+                and revenue.
               </p>
             </div>
           </div>
@@ -128,7 +141,7 @@ export default function Home() {
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-6">
             Try the Demo
           </h3>
-                    <p className="text-center text-gray-800 mb-8">
+          <p className="text-center text-gray-800 mb-8">
             Explore our features with these demo accounts and sample events
           </p>
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -140,14 +153,15 @@ export default function Home() {
                 User Demo
               </h4>
               <p className="text-gray-800 mb-4">
-                Explore the user experience - browse events, make bookings, and manage your tickets.
+                Explore the user experience - browse events, make bookings, and
+                manage your tickets.
               </p>
               <div className="text-sm text-gray-700">
                 <div>Email: user@evently.com</div>
                 <div>Password: password123</div>
               </div>
             </Link>
-            
+
             <Link
               href="/login"
               className="border-2 border-green-200 rounded-lg p-6 hover:border-green-400 transition-colors group"
@@ -156,7 +170,8 @@ export default function Home() {
                 Admin Demo
               </h4>
               <p className="text-gray-800 mb-4">
-                Access the admin dashboard - create events, manage bookings, and view analytics.
+                Access the admin dashboard - create events, manage bookings, and
+                view analytics.
               </p>
               <div className="text-sm text-gray-700">
                 <div>Email: admin@evently.com</div>

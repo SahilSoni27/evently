@@ -1,32 +1,32 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const { register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError("Password must be at least 6 characters long");
       return;
     }
 
@@ -34,9 +34,9 @@ export default function RegisterPage() {
 
     try {
       await register(name, email, password);
-      router.push('/dashboard');
+      router.push("/events");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -49,24 +49,30 @@ export default function RegisterPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your Evently account
           </h2>
-                    <p className="mt-2 text-center text-sm text-gray-800">
-            Already have an account?{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+          <p className="mt-2 text-center text-sm text-gray-800">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               Sign in
             </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-800">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-800"
+              >
                 Full Name
               </label>
               <input
@@ -81,9 +87,12 @@ export default function RegisterPage() {
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            
+
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-800">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-800"
+              >
                 Email Address
               </label>
               <input
@@ -98,9 +107,12 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-800">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-800"
+              >
                 Password
               </label>
               <input
@@ -115,9 +127,12 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            
+
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-800">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-800"
+              >
                 Confirm Password
               </label>
               <input
@@ -140,7 +155,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? "Creating account..." : "Create account"}
             </button>
           </div>
         </form>

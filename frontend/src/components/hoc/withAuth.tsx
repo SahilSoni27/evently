@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function withAuth<P extends object>(
   WrappedComponent: React.ComponentType<P>
@@ -13,7 +13,7 @@ export function withAuth<P extends object>(
 
     useEffect(() => {
       if (!loading && !isAuthenticated) {
-        router.push('/login');
+        router.push("/login");
       }
     }, [isAuthenticated, loading, router]);
 
@@ -42,9 +42,9 @@ export function withAdminAuth<P extends object>(
 
     useEffect(() => {
       if (!loading && !isAuthenticated) {
-        router.push('/login');
+        router.push("/login");
       } else if (!loading && isAuthenticated && !isAdmin) {
-        router.push('/dashboard');
+        router.push("/events");
       }
     }, [isAuthenticated, isAdmin, loading, router]);
 

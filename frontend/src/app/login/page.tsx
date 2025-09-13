@@ -1,47 +1,48 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       await login(email, password);
-      router.push('/dashboard');
+      router.push("/events");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDemoLogin = async (role: 'user' | 'admin') => {
+  const handleDemoLogin = async (role: "user" | "admin") => {
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const credentials = role === 'admin' 
-        ? { email: 'admin@evently.com', password: 'password123' }
-        : { email: 'user@evently.com', password: 'password123' };
-      
+      const credentials =
+        role === "admin"
+          ? { email: "admin@evently.com", password: "password123" }
+          : { email: "user@evently.com", password: "password123" };
+
       await login(credentials.email, credentials.password);
-      router.push(role === 'admin' ? '/admin' : '/dashboard');
+      router.push(role === "admin" ? "/admin" : "/events");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Demo login failed');
+      setError(err instanceof Error ? err.message : "Demo login failed");
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ export default function LoginPage() {
             Sign in to Evently
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
+            Or{" "}
             <Link
               href="/register"
               className="font-medium text-blue-600 hover:text-blue-500"
@@ -64,14 +65,14 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
-          
+
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -113,7 +114,7 @@ export default function LoginPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
@@ -124,20 +125,22 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">Demo Accounts</span>
+              <span className="px-2 bg-gray-50 text-gray-500">
+                Demo Accounts
+              </span>
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
-              onClick={() => handleDemoLogin('user')}
+              onClick={() => handleDemoLogin("user")}
               disabled={loading}
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
             >
               Demo User
             </button>
             <button
-              onClick={() => handleDemoLogin('admin')}
+              onClick={() => handleDemoLogin("admin")}
               disabled={loading}
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
             >
