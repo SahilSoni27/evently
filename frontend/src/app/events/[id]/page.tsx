@@ -40,6 +40,27 @@ export default function EventDetailPage() {
 
   const eventId = params?.id as string;
 
+  // Debug effect for congratulations popup
+  useEffect(() => {
+    if (showCongratulations && lastBooking) {
+      console.log('🎉 Congratulations popup should be visible:', { showCongratulations, lastBooking });
+    }
+  }, [showCongratulations, lastBooking]);
+
+  // Temporary debug function to test popup (remove in production)
+  useEffect(() => {
+    (window as any).testSeatBookingPopup = () => {
+      console.log('🧪 Testing seat booking popup...');
+      setLastBooking({
+        id: 'test-booking-123',
+        eventName: 'Test Event',
+        ticketCount: 2,
+        totalPrice: 151.98
+      });
+      setShowCongratulations(true);
+    };
+  }, []);
+
   const getCategoryColor = (category: string) => {
     const colors = {
       CONFERENCE: "bg-blue-100 text-blue-800",
@@ -125,6 +146,11 @@ export default function EventDetailPage() {
       }
     }
 
+    console.log('🎭 Starting booking process...', { 
+      seatLevelBooking: event.seatLevelBooking, 
+      selectedSeats: selectedSeats.length,
+      quantity 
+    });
     setBookingLoading(true);
     setError("");
     setSuccess("");
@@ -141,12 +167,42 @@ export default function EventDetailPage() {
         });
 
         const responseData = (response as any)?.data || response;
-        const jobId = responseData.jobId;
+        console.log('🔍 Seat booking API response:', { response, responseData });
+        
+        // Check if booking completed immediately (fallback case)
+        if (responseData.success === true || (response as any)?.data?.success === true) {
+          // Direct booking success
+          console.log('✅ Direct seat booking success, setting up congratulations popup');
+          setLastBooking({
+            id: responseData.bookingId || `seat-booking-${Date.now()}`,
+            eventName: event.name,
+            ticketCount: selectedSeats.length,
+            totalPrice: responseData.totalPrice || parseFloat(calculateTotalPrice()),
+          });
 
-        if (jobId) {
-          // Show processing message
-          showToast("Processing your seat booking...", "info");
+          console.log('✅ Setting lastBooking and showCongratulations:', {
+            lastBooking: {
+              id: responseData.bookingId || `seat-booking-${Date.now()}`,
+              eventName: event.name,
+              ticketCount: selectedSeats.length,
+              totalPrice: responseData.totalPrice || parseFloat(calculateTotalPrice()),
+            }
+          });
+          setShowCongratulations(true);
 
+          // Reset form and refresh data
+          setQuantity(1);
+          setSelectedSeats([]);
+          setTotalPrice(0);
+
+          // Refresh event data
+          const updatedResponse = await apiClient.getEvent(eventId);
+          const updatedEvent = (updatedResponse as any)?.data?.event || updatedResponse;
+          setEvent(updatedEvent);
+          setSeatRefreshTrigger((prev) => prev + 1);
+        } else if (responseData.jobId) {
+          // Async booking with job polling
+          const jobId = responseData.jobId;
           // Poll for booking status
           const pollBookingStatus = async (
             jobId: string,
@@ -170,10 +226,7 @@ export default function EventDetailPage() {
                       parseFloat(calculateTotalPrice()),
                   });
 
-                  showToast(
-                    `Successfully booked ${selectedSeats.length} seat(s)!`,
-                    "success"
-                  );
+                  console.log('✅ Polling seat booking success, showing congratulations popup');
                   setShowCongratulations(true);
 
                   // Reset form and refresh data
@@ -193,8 +246,8 @@ export default function EventDetailPage() {
                   statusData?.message &&
                   !statusData.message.includes("processing")
                 ) {
-                  // Booking failed
-                  showToast(statusData.message || "Booking failed", "error");
+                  // Booking failed - set error state instead of toast
+                  setError(statusData.message || "Booking failed");
                   return false;
                 }
 
@@ -207,10 +260,6 @@ export default function EventDetailPage() {
             }
 
             // Timeout
-            showToast(
-              "Booking is taking longer than expected. Please check your bookings.",
-              "info"
-            );
             return false;
           };
 
@@ -236,7 +285,6 @@ export default function EventDetailPage() {
             totalPrice: parseFloat(calculateTotalPrice()),
           });
 
-          showToast(`Successfully booked ${quantity} ticket(s)!`, "success");
           setShowCongratulations(true);
 
           // Reset form and refresh data
@@ -661,14 +709,21 @@ export default function EventDetailPage() {
                       }
                       className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <CreditCard className="h-5 w-5 mr-2" />
-                      {bookingLoading
-                        ? "Processing..."
-                        : event.seatLevelBooking
-                        ? `Book ${selectedSeats.length} Selected Seat${
-                            selectedSeats.length !== 1 ? "s" : ""
-                          }`
-                        : `Book ${quantity} Ticket${quantity > 1 ? "s" : ""}`}
+                      {bookingLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-5 w-5 mr-2" />
+                          {event.seatLevelBooking
+                            ? `Book ${selectedSeats.length} Selected Seat${
+                                selectedSeats.length !== 1 ? "s" : ""
+                              }`
+                            : `Book ${quantity} Ticket${quantity > 1 ? "s" : ""}`}
+                        </>
+                      )}
                     </button>
                   ) : (
                     <Link

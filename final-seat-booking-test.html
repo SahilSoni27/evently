@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seat Booking Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .step { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .code { background: #f5f5f5; padding: 10px; border-radius: 3px; font-family: monospace; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeeba; }
+        .danger { background-color: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🎭 Seat Booking Test Instructions</h1>
+    
+    <div class="step">
+        <h3>Step 1: Open the Test URL</h3>
+        <p>Click this link: <a href="http://localhost:3001/events/cmfhy33ti0003nvc3jg1163zx" target="_blank">Theater Show - Seat Booking Test</a></p>
+    </div>
+
+    <div class="step warning">
+        <h3>Step 2: Setup Authentication</h3>
+        <p>Open browser developer console (F12) and paste this code:</p>
+        <div class="code">
+localStorage.setItem('token', 'test-token-123');<br>
+localStorage.setItem('user', JSON.stringify({<br>
+&nbsp;&nbsp;id: 'test-user-123',<br>
+&nbsp;&nbsp;name: 'Test User',<br>
+&nbsp;&nbsp;email: 'test@example.com',<br>
+&nbsp;&nbsp;role: 'USER',<br>
+&nbsp;&nbsp;createdAt: '2025-01-01T00:00:00.000Z',<br>
+&nbsp;&nbsp;updatedAt: '2025-01-01T00:00:00.000Z'<br>
+}));<br>
+console.log('✅ Auth setup complete - refresh the page');<br>
+        </div>
+        <p><strong>Then refresh the page!</strong></p>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Test Seat Selection</h3>
+        <ul>
+            <li>Look for a seat selection interface (grid of seats)</li>
+            <li>Click on 2-3 seats to select them</li>
+            <li>Selected seats should be highlighted differently</li>
+            <li>Order summary should show selected seats count and total price</li>
+        </ul>
+    </div>
+
+    <div class="step success">
+        <h3>Step 4: Test Booking Flow</h3>
+        <ol>
+            <li>Scroll down to find the "Book X Selected Seat(s)" button</li>
+            <li>Click the button</li>
+            <li><strong>Expected behavior:</strong>
+                <ul>
+                    <li>✅ Button shows loading spinner and "Processing..." text</li>
+                    <li>✅ NO toast messages appear</li>
+                    <li>✅ After ~2 seconds, congratulations popup appears</li>
+                    <li>✅ Seat selection resets</li>
+                    <li>✅ Event data refreshes</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="step danger">
+        <h3>Step 5: Check Console for Debug Info</h3>
+        <p>Watch the browser console during booking. You should see:</p>
+        <ul>
+            <li>✅ "Direct seat booking success, setting up congratulations popup"</li>
+            <li>✅ "Showing congratulations popup"</li>
+            <li>✅ "Congratulations popup should be visible"</li>
+            <li>✅ API call logs (if backend available) or fallback messages</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>Troubleshooting</h3>
+        <p><strong>If seats don't load:</strong></p>
+        <ul>
+            <li>Check if you're authenticated (Step 2)</li>
+            <li>Refresh the page</li>
+            <li>Check console for errors</li>
+        </ul>
+        
+        <p><strong>If booking doesn't work:</strong></p>
+        <ul>
+            <li>Make sure seats are selected first</li>
+            <li>Check that button is not disabled</li>
+            <li>Look for console error messages</li>
+            <li>Verify the congratulations popup component is loaded</li>
+        </ul>
+
+        <p><strong>If you still see toast messages:</strong></p>
+        <ul>
+            <li>Hard refresh the page (Ctrl+F5 or Cmd+Shift+R)</li>
+            <li>Clear browser cache</li>
+            <li>Check if the frontend server reloaded after code changes</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('🎭 Seat Booking Test Page Loaded');
+        console.log('📋 Follow the steps above to test the seat booking flow');
+        
+        // Check if we're running locally
+        if (window.location.hostname !== 'localhost') {
+            alert('⚠️ This test should be run on localhost. Please check the URLs.');
+        }
+    </script>
+</body>
+</html>
