@@ -4,6 +4,7 @@ import { createError, asyncHandler } from '../middleware/errorHandler';
 import type { CreateBookingInput } from '../validation/schemas';
 import { UserRole } from '../types';
 import { withOptimisticLocking, generateIdempotencyKey } from '../utils/retry';
+import { withDatabaseRetry, handleDatabaseError } from '../utils/database';
 import AnalyticsCache from '../utils/analyticsCache';
 import JobScheduler from '../services/jobQueue';
 
@@ -23,18 +24,20 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
 
   // Use optimistic locking with retry logic
   const result = await withOptimisticLocking(async () => {
-    // Check if event exists and get current state with version
-    const event = await prisma.event.findUnique({
-      where: { id: bookingData.eventId },
-      select: {
-        id: true,
-        name: true,
-        startTime: true,
-        availableCapacity: true,
-        capacity: true,
-        price: true,
-        version: true
-      }
+    // Check if event exists and get current state with version (with retry on connection errors)
+    const event = await withDatabaseRetry(async () => {
+      return await prisma.event.findUnique({
+        where: { id: bookingData.eventId },
+        select: {
+          id: true,
+          name: true,
+          startTime: true,
+          availableCapacity: true,
+          capacity: true,
+          price: true,
+          version: true
+        }
+      });
     });
 
     if (!event) {
@@ -54,103 +57,13 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
       );
     }
 
-    // Check for duplicate booking if idempotencyKey is provided
-    const existingBooking = await prisma.booking.findFirst({
-      where: {
-        userId,
-        idempotencyKey: bookingData.idempotencyKey
-      },
-      include: {
-        event: {
-          select: {
-            id: true,
-            name: true,
-            venue: true,
-            startTime: true,
-            endTime: true
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    if (existingBooking) {
-      // Return the existing booking instead of creating a duplicate
-      return {
-        booking: existingBooking,
-        isNew: false
-      };
-    }
-
-    // Calculate total price
-    const totalPrice = Number(event.price) * bookingData.quantity;
-
-    // Use transaction with optimistic locking
-    const booking = await prisma.$transaction(async (tx) => {
-      // Update event capacity with version check (optimistic locking)
-      const updatedEvent = await tx.event.updateMany({
+    // Check for duplicate booking if idempotencyKey is provided (with retry)
+    const existingBooking = await withDatabaseRetry(async () => {
+      return await prisma.booking.findFirst({
         where: {
-          id: bookingData.eventId,
-          version: event.version, // This ensures optimistic locking
-          availableCapacity: {
-            gte: bookingData.quantity // Double-check capacity
-          }
-        },
-        data: {
-          availableCapacity: {
-            decrement: bookingData.quantity
-          },
-          version: {
-            increment: 1
-          }
-        }
-      });
-
-      // If no rows were updated, it means either:
-      // 1. Version conflict (optimistic locking)
-      // 2. Insufficient capacity
-      if (updatedEvent.count === 0) {
-        // Check if event still exists and get current state
-        const currentEvent = await tx.event.findUnique({
-          where: { id: bookingData.eventId },
-          select: { version: true, availableCapacity: true }
-        });
-
-        if (!currentEvent) {
-          throw createError('Event not found', 404);
-        }
-
-        if (currentEvent.version !== event.version) {
-          throw createError('Event capacity changed, please retry', 409);
-        }
-
-        if (currentEvent.availableCapacity < bookingData.quantity) {
-          throw createError(
-            `Only ${currentEvent.availableCapacity} tickets available, requested ${bookingData.quantity}`,
-            400
-          );
-        }
-
-        // This should not happen, but just in case
-        throw createError('Failed to update event capacity', 500);
-      }
-
-      // Create the booking
-      const newBooking = await tx.booking.create({
-        data: {
           userId,
-          eventId: bookingData.eventId,
-          quantity: bookingData.quantity,
-          totalPrice,
-          idempotencyKey: bookingData.idempotencyKey,
-          status: 'CONFIRMED'
-        } as any,
+          idempotencyKey: bookingData.idempotencyKey
+        },
         include: {
           event: {
             select: {
@@ -170,8 +83,104 @@ export const createBooking = asyncHandler(async (req: any, res: Response) => {
           }
         }
       });
+    });
 
-      return newBooking;
+    if (existingBooking) {
+      // Return the existing booking instead of creating a duplicate
+      return {
+        booking: existingBooking,
+        isNew: false
+      };
+    }
+
+    // Calculate total price
+    const totalPrice = Number(event.price) * bookingData.quantity;
+
+    // Use transaction with optimistic locking (with retry)
+    const booking = await withDatabaseRetry(async () => {
+      return await prisma.$transaction(async (tx) => {
+        // Update event capacity with version check (optimistic locking)
+        const updatedEvent = await tx.event.updateMany({
+          where: {
+            id: bookingData.eventId,
+            version: event.version, // This ensures optimistic locking
+            availableCapacity: {
+              gte: bookingData.quantity // Double-check capacity
+            }
+          },
+          data: {
+            availableCapacity: {
+              decrement: bookingData.quantity
+            },
+            version: {
+              increment: 1
+            }
+          }
+        });
+
+        // If no rows were updated, it means either:
+        // 1. Version conflict (optimistic locking)
+        // 2. Insufficient capacity
+        if (updatedEvent.count === 0) {
+          // Check if event still exists and get current state
+          const currentEvent = await tx.event.findUnique({
+            where: { id: bookingData.eventId },
+            select: { version: true, availableCapacity: true }
+          });
+
+          if (!currentEvent) {
+            throw createError('Event not found', 404);
+          }
+
+          if (currentEvent.version !== event.version) {
+            throw createError('Event capacity changed, please retry', 409);
+          }
+
+          if (currentEvent.availableCapacity < bookingData.quantity) {
+            throw createError(
+              `Only ${currentEvent.availableCapacity} tickets available, requested ${bookingData.quantity}`,
+              400
+            );
+          }
+
+          // This should not happen, but just in case
+          throw createError('Failed to update event capacity', 500);
+        }
+
+        // Create the booking
+        const newBooking = await tx.booking.create({
+          data: {
+            userId,
+            eventId: bookingData.eventId,
+            quantity: bookingData.quantity,
+            totalPrice,
+            idempotencyKey: bookingData.idempotencyKey,
+            status: 'CONFIRMED'
+          } as any,
+          include: {
+            event: {
+              select: {
+                id: true,
+                name: true,
+                venue: true,
+                startTime: true,
+                endTime: true
+              }
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        });
+
+        return newBooking;
+      }, {
+        timeout: 15000 // Increase timeout to 15 seconds
+      });
     });
 
     return {

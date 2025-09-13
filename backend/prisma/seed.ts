@@ -128,6 +128,22 @@ async function main() {
   });
   console.log('✅ Created AI Workshop');
 
+  const event6 = await prisma.event.create({
+    data: {
+      name: 'PDEU Sports Championship',
+      description: 'Inter-college sports championship with multiple events and competitions',
+      venue: 'PDEU Sports Complex',
+      startTime: new Date('2025-11-15T08:00:00Z'),
+      endTime: new Date('2025-11-17T18:00:00Z'),
+      capacity: 2000,
+      availableCapacity: 2000,
+      price: 25.99,
+      imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop&crop=center',
+      seatLevelBooking: false,
+    },
+  });
+  console.log('✅ Created PDEU Sports Championship');
+
   const events = [event1, event2, event3, event4, event5, event6];
   console.log('✅ Created 6 events with images');
 

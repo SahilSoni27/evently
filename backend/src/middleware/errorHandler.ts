@@ -24,7 +24,7 @@ const handlePrismaError = (error: Prisma.PrismaClientKnownRequestError): AppErro
     
     case 'P2025':
       // Record not found
-      return createError('Record not found', 404);
+      return createError('Related record not found', 404);
     
     case 'P2003':
       // Foreign key constraint violation
@@ -38,9 +38,31 @@ const handlePrismaError = (error: Prisma.PrismaClientKnownRequestError): AppErro
       // Inconsistent column data
       return createError('Invalid data format provided', 400);
     
+    case 'P2028':
+      // Transaction timeout
+      return createError('Request took too long to complete. Please try again.', 503);
+    
+    // Connection and timeout errors
+    case 'P1001':
+      return createError('Database connection failed. Please try again.', 503);
+    
+    case 'P1002':
+      return createError('Database connection timed out. Please try again.', 503);
+    
+    case 'P1008':
+      return createError('Database operation timed out. Please try again.', 503);
+    
+    case 'P1017':
+      return createError('Database connection was closed. Please try again.', 503);
+    
     default:
-      console.error('Unhandled Prisma error:', error);
-      return createError('Database error occurred', 500);
+      console.error('Unhandled Prisma error:', {
+        code: error.code,
+        message: error.message,
+        meta: error.meta,
+        clientVersion: error.clientVersion
+      });
+      return createError(`Database error occurred: ${error.code} - ${error.message}`, 500);
   }
 };
 
@@ -71,6 +93,9 @@ export const errorHandler = (
     error = handleValidationError(err);
   } else if (err.isOperational) {
     error = err as AppError;
+  } else if (err.code && (err.code === 'ECONNRESET' || err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT')) {
+    // Handle network connection errors
+    error = createError('Connection error. Please try again.', 503);
   } else {
     // Generic error handling
     error = createError(

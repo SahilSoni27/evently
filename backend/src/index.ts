@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import prisma from './lib/prisma';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -98,6 +99,61 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     version: '1.0.0'
   });
+});
+
+// Detailed health check with database connectivity
+app.get('/api/health', async (req, res) => {
+  const healthCheck: any = {
+    status: 'success',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0',
+    services: {
+      database: { status: 'unknown', responseTime: 0 },
+      redis: { status: 'unknown', responseTime: 0 }
+    }
+  };
+
+  // Test database connection
+  try {
+    const dbStart = Date.now();
+    await prisma.$queryRaw`SELECT 1`;
+    healthCheck.services.database = {
+      status: 'healthy',
+      responseTime: Date.now() - dbStart
+    };
+  } catch (error) {
+    healthCheck.services.database = {
+      status: 'unhealthy',
+      responseTime: 0,
+      error: error instanceof Error ? error.message : 'Database connection failed'
+    };
+    healthCheck.status = 'degraded';
+  }
+
+  // Test Redis connection
+  try {
+    const { default: redisCache } = await import('./lib/redis');
+    const redisStart = Date.now();
+    await redisCache.set('health-check', 'ok', 5);
+    await redisCache.get('health-check');
+    healthCheck.services.redis = {
+      status: 'healthy',
+      responseTime: Date.now() - redisStart
+    };
+  } catch (error) {
+    healthCheck.services.redis = {
+      status: 'unhealthy',
+      responseTime: 0,
+      error: error instanceof Error ? error.message : 'Redis connection failed'
+    };
+    if (healthCheck.status === 'success') {
+      healthCheck.status = 'degraded';
+    }
+  }
+
+  const statusCode = healthCheck.status === 'success' ? 200 : 503;
+  res.status(statusCode).json(healthCheck);
 });
 
 // Test endpoint for frontend connectivity
